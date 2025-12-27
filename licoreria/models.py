@@ -32,3 +32,22 @@ class Empleados(models.Model):
 
     def __str__(self):
         return self.nombre
+
+class Ordenes(models.Model):
+    cliente = models.ForeignKey(Clientes, on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now_add=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    productos = models.ManyToManyField(Productos)
+
+    def __str__(self):
+        return f"Orden {self.id} - {self.cliente.nombre}"
+
+class Prestamos(models.Model):
+    cliente = models.ForeignKey(Clientes, on_delete=models.CASCADE)
+    fecha_prestamo = models.DateField(auto_now_add=True)
+    descripcion = models.TextField(help_text="Descripción de lo prestado (envases, dinero, etc.)")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Valor monetario del préstamo")
+    devuelto = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Prestamo {self.id} - {self.cliente.nombre}"
