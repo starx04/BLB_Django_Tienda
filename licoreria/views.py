@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Producto
+from .models import Productos
 
 def index(request):
-    productos = Producto.objects.all()
+    productos = Productos.objects.all()
     return render(request, 'index.html', {'productos': productos})
