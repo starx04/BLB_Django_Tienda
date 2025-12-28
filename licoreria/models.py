@@ -51,3 +51,21 @@ class Prestamos(models.Model):
 
     def __str__(self):
         return f"Prestamo {self.id} - {self.cliente.nombre}"
+
+class Distribuidores(models.Model):
+    nombre = models.CharField(max_length=200)
+    email = models.EmailField(blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    direccion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
+class DetallesOrdenes(models.Model):
+    orden = models.ForeignKey(Ordenes, on_delete=models.CASCADE, related_name='detalles')
+    producto = models.ForeignKey(Productos, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField(default=1)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre} (Orden {self.orden.id})"
