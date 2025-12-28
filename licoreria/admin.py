@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Categorias, Productos, Clientes, Empleados, Ordenes, Prestamos, Distribuidores, DetallesOrdenes
+from .models import Categorias, Productos, Clientes, Empleados, Ordenes, Prestamos, Distribuidores, DetallesOrdenes, Gastos
 
 # Configuración Personalizada del Admin
 
@@ -27,6 +27,11 @@ class OrdenesAdmin(admin.ModelAdmin):
     list_display = ('id', 'cliente', 'fecha', 'total', 'empleado')
     inlines = [DetallesOrdenInline]
     readonly_fields = ('total',)  # El total se calcula solo
+
+@admin.register(Gastos)
+class GastosAdmin(admin.ModelAdmin):
+    list_display = ('descripcion', 'monto', 'fecha', 'categoria_gasto')
+    list_filter = ('categoria_gasto', 'fecha')
 
 # Registro simple para los demás
 admin.site.register(Categorias)

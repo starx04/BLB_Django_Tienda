@@ -71,3 +71,19 @@ class DetallesOrdenes(models.Model):
 
     def __str__(self):
         return f"{self.cantidad} x {self.producto.nombre} (Orden {self.orden.id})"
+
+class Gastos(models.Model):
+    CATEGORIAS_GASTOS = [
+        ('PRO', 'Proveedores'),
+        ('SER', 'Servicios Básicos'),
+        ('NOM', 'Nómina'),
+        ('OTR', 'Otros'),
+    ]
+    
+    descripcion = models.CharField(max_length=255)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha = models.DateField(auto_now_add=True)
+    categoria_gasto = models.CharField(max_length=3, choices=CATEGORIAS_GASTOS, default='OTR', verbose_name="Categoría")
+
+    def __str__(self):
+        return f"{self.descripcion} - ${self.monto}"
