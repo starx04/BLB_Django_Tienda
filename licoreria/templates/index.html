@@ -173,10 +173,52 @@
 
 <body>
     <header>
-        <h1>Licorería Exclusiva</h1>
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+            <h1>Licorería Exclusiva</h1>
+            <a href="{% url 'ver_carrito' %}"
+                style="text-decoration: none; color: white; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                <span>🛒 Carrito</span>
+                {% if cart_count > 0 %}
+                <span
+                    style="background: var(--accent-color); padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">{{
+                    cart_count }}</span>
+                {% endif %}
+            </a>
+        </div>
     </header>
 
     <div class="container">
+        <!-- Barra de Búsqueda y Filtros -->
+        <form method="GET" style="margin-bottom: 2rem; display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" name="busqueda" placeholder="Buscar licor..."
+                value="{{ request.GET.busqueda|default:'' }}"
+                style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; min-width: 200px;">
+
+            <select name="categoria" onchange="this.form.submit()"
+                style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15, 23, 42, 0.8); color: white;">
+                <option value="">Todas las Categorías</option>
+                {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if request.GET.categoria|add:"0"==categoria.id %}selected{% endif
+                    %}>
+                    {{ categoria.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit"
+                style="padding: 12px 24px; background: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                Buscar
+            </button>
+
+            {% if request.GET.busqueda or request.GET.categoria %}
+            <a href="{% url 'index' %}"
+                style="padding: 12px 24px; background: #64748b; color: white; border: none; border-radius: 8px; text-decoration: none; display: flex; align-items: center;">
+                Limpiar
+            </a>
+            {% endif %}
+        </form>
+
         <div class="product-grid">
             {% for producto in productos %}
             <div class="product-card">
@@ -191,6 +233,10 @@
                 <div class="meta">
                     <span class="badge">{{ producto.grados_alcohol }}° Alc</span>
                     <span class="badge">Stock: {{ producto.stock }}</span>
+                    {% if producto.distribuidor %}
+                    <span class="badge" style="background: rgba(139, 92, 246, 0.2)">{{ producto.distribuidor.nombre
+                        }}</span>
+                    {% endif %}
                 </div>
 
                 <h3>{{ producto.nombre }}</h3>
@@ -199,7 +245,12 @@
                     <span class="price">${{ producto.precio }}</span>
                 </div>
 
-                <button class="btn-add">Agregar al Carrito</button>
+                {% if producto.stock > 0 %}
+                <a href="{% url 'agregar_carrito' producto.id %}" class="btn-add"
+                    style="text-decoration: none; text-align: center;">Agregar al Carrito</a>
+                {% else %}
+                <button class="btn-add" style="background: #334155; cursor: not-allowed;" disabled>Agotado</button>
+                {% endif %}
             </div>
             {% empty %}
             <div class="empty-state">

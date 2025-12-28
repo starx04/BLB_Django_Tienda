@@ -9,6 +9,7 @@ class Categorias(models.Model):
 class Productos(models.Model):
     nombre = models.CharField(max_length=200)
     categoria = models.ForeignKey(Categorias, on_delete=models.CASCADE, related_name='productos', null=True, blank=True)
+    distribuidor = models.ForeignKey('Distribuidores', on_delete=models.SET_NULL, null=True, blank=True, related_name='productos')
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
     grados_alcohol = models.DecimalField(max_digits=4, decimal_places=1)
@@ -35,9 +36,10 @@ class Empleados(models.Model):
 
 class Ordenes(models.Model):
     cliente = models.ForeignKey(Clientes, on_delete=models.CASCADE)
+    empleado = models.ForeignKey(Empleados, on_delete=models.SET_NULL, null=True, blank=True, help_text="Vendedor que procesó la orden")
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    productos = models.ManyToManyField(Productos)
+    # Relación con Productos se maneja a través de DetallesOrdenes
 
     def __str__(self):
         return f"Orden {self.id} - {self.cliente.nombre}"
