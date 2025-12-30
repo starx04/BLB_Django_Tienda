@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Órdenes | Licorería Premium{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Historial de Órdenes</h2>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Fecha</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for orden in ordenes %}
+        <tr>
+            <td>#{{ orden.id }}</td>
+            <td>{{ orden.cliente.nombre }}</td>
+            <td>{{ orden.empleado.nombre|default:"Online/Sin Vendedor" }}</td>
+            <td>{{ orden.fecha|date:"d M Y H:i" }}</td>
+            <td style="color: var(--price-color); font-weight: bold;">${{ orden.total }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">No hay órdenes registradas.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

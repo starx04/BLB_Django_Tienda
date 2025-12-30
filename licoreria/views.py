@@ -1,8 +1,12 @@
+from django.shortcuts import render, redirect
 from django.db.models import Q
-from .models import Productos, Categorias, Ordenes, DetallesOrdenes, Clientes
+from .models import Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, Empleados, Distribuidores, Gastos, Prestamos
 
 def index(request):
-    productos = Productos.objects.all()
+    return render(request, 'index.html')
+
+def productos(request):
+    productos_list = Productos.objects.all()
     categorias = Categorias.objects.all()
 
     # Filtros
@@ -10,19 +14,39 @@ def index(request):
     busqueda = request.GET.get('busqueda')
 
     if categoria_id:
-        productos = productos.filter(categoria_id=categoria_id)
+        productos_list = productos_list.filter(categoria_id=categoria_id)
     
     if busqueda:
-        productos = productos.filter(Q(nombre__icontains=busqueda))
+        productos_list = productos_list.filter(Q(nombre__icontains=busqueda))
 
-    # Calcular cantidad en carrito para la insignia (badge)
-    carrito = request.session.get('cart', {})
-    cantidad_carrito = sum(carrito.values())
-    return render(request, 'index.html', {
-        'productos': productos, 
-        'categorias': categorias,
-        'cart_count': cantidad_carrito
+    return render(request, 'licoreria/productos.html', {
+        'productos': productos_list, 
+        'categorias': categorias
     })
+
+def clientes(request):
+    clientes_list = Clientes.objects.all()
+    return render(request, 'licoreria/clientes.html', {'clientes': clientes_list})
+
+def empleados(request):
+    empleados_list = Empleados.objects.all()
+    return render(request, 'licoreria/empleados.html', {'empleados': empleados_list})
+
+def distribuidores(request):
+    distribuidores_list = Distribuidores.objects.all()
+    return render(request, 'licoreria/distribuidores.html', {'distribuidores': distribuidores_list})
+
+def gastos(request):
+    gastos_list = Gastos.objects.all()
+    return render(request, 'licoreria/gastos.html', {'gastos': gastos_list})
+
+def prestamos(request):
+    prestamos_list = Prestamos.objects.all()
+    return render(request, 'licoreria/prestamos.html', {'prestamos': prestamos_list})
+
+def ordenes(request):
+    ordenes_list = Ordenes.objects.all()
+    return render(request, 'licoreria/ordenes.html', {'ordenes': ordenes_list})
 
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
@@ -34,7 +58,7 @@ def agregar_carrito(request, producto_id):
         carrito[prod_id_str] = 1
     
     request.session['cart'] = carrito
-    return redirect('index')
+    return redirect('productos')
 
 def ver_carrito(request):
     carrito = request.session.get('cart', {})

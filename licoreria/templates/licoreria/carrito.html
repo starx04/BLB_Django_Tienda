@@ -1,115 +1,47 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends 'base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu Carrito | Licorería</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #0f172a;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 2rem;
-        }
+{% block title %}Tu Carrito | Licorería Premium{% endblock %}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+{% block content %}
+<h1 style="color: var(--accent-color); margin-bottom: 2rem;">Tu Pedido Actual</h1>
 
-        h1 {
-            color: #8b5cf6;
-        }
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cant</th>
+            <th>Precio Unit.</th>
+            <th>Subtotal</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.producto.nombre }}</td>
+            <td>{{ item.cantidad }}</td>
+            <td>${{ item.producto.precio }}</td>
+            <td>${{ item.subtotal }}</td>
+            <td><a href="{% url 'eliminar_carrito' item.producto.id %}" class="btn btn-danger"
+                    style="padding: 6px 12px; font-size: 0.9rem;">Eliminar</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 2rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        th,
-        td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        th {
-            background: rgba(0, 0, 0, 0.2);
-            font-weight: 700;
-            color: #94a3b8;
-        }
-
-        .btn-delete {
-            color: #ef4444;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .btn-checkout {
-            display: inline-block;
-            background: #22c55e;
-            color: black;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 2rem;
-        }
-
-        .btn-back {
-            display: inline-block;
-            color: #94a3b8;
-            margin-top: 1rem;
-            text-decoration: none;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>Tu Pedido</h1>
-
-        {% if items %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cant</th>
-                    <th>Precio Unit.</th>
-                    <th>Subtotal</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.producto.nombre }}</td>
-                    <td>{{ item.cantidad }}</td>
-                    <td>${{ item.producto.precio }}</td>
-                    <td>${{ item.subtotal }}</td>
-                    <td><a href="{% url 'eliminar_carrito' item.producto.id %}" class="btn-delete">Eliminar</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div style="text-align: right; margin-top: 2rem;">
-            <h2 style="font-size: 2rem; margin: 0;">Total: ${{ total }}</h2>
-            <a href="{% url 'checkout_whatsapp' %}" class="btn-checkout">Enviar Pedido por WhatsApp 📱</a>
-        </div>
-        {% else %}
-        <p style="text-align: center; font-size: 1.2rem; color: #64748b; margin-top: 4rem;">Tu carrito está vacío.</p>
-        {% endif %}
-
-        <a href="{% url 'index' %}" class="btn-back">← Volver a la tienda</a>
+<div style="text-align: right; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+    <h2 style="font-size: 2.5rem; margin: 0 0 1rem 0; color: var(--price-color);">Total: ${{ total }}</h2>
+    <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <a href="{% url 'index' %}" class="btn btn-secondary">Seguir Comprando</a>
+        <a href="{% url 'checkout_whatsapp' %}" class="btn btn-primary" style="background: #25D366;">Enviar Pedido por
+            WhatsApp 📱</a>
     </div>
-</body>
-
-</html>
+</div>
+{% else %}
+<div style="text-align: center; padding: 4rem;">
+    <h2 style="color: #64748b; margin-bottom: 2rem;">Tu carrito está vacío 🛒</h2>
+    <a href="{% url 'index' %}" class="btn btn-primary">Volver a la tienda</a>
+</div>
+{% endif %}
+{% endblock %}

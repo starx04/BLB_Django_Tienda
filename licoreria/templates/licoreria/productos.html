@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+.product-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 2rem;
+}
+
+.product-card {
+background: var(--card-bg);
+border-radius: 16px;
+padding: 1.5rem;
+border: 1px solid rgba(255, 255, 255, 0.1);
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+position: relative;
+}
+
+.product-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+border-color: rgba(139, 92, 246, 0.3);
+}
+
+.img-container {
+width: 100%;
+height: 250px;
+border-radius: 12px;
+overflow: hidden;
+margin-bottom: 1rem;
+background-color: #1e293b;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.product-card img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+transition: transform 0.5s ease;
+}
+
+.product-card:hover img {
+transform: scale(1.05);
+}
+
+.no-image {
+color: #64748b;
+font-size: 0.9rem;
+}
+
+h3 {
+margin: 0.5rem 0;
+font-size: 1.25rem;
+font-weight: 600;
+}
+
+.details {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-top: auto;
+padding-top: 1rem;
+}
+
+.price {
+font-size: 1.5rem;
+font-weight: 700;
+color: var(--price-color);
+}
+
+.meta {
+font-size: 0.85rem;
+color: #94a3b8;
+display: flex;
+gap: 10px;
+margin-bottom: 0.5rem;
+}
+
+.badge {
+background: rgba(255, 255, 255, 0.1);
+padding: 4px 8px;
+border-radius: 6px;
+}
+
+.btn-add {
+display: block;
+width: 100%;
+margin-top: 1rem;
+padding: 0.8rem;
+background: var(--accent-color);
+color: white;
+border: none;
+border-radius: 8px;
+font-weight: 600;
+cursor: pointer;
+transition: background 0.2s;
+font-family: inherit;
+text-align: center;
+text-decoration: none;
+}
+
+.btn-add:hover {
+background: var(--accent-hover);
+}
+
+/* Empty state */
+.empty-state {
+text-align: center;
+grid-column: 1 / -1;
+padding: 4rem;
+color: #64748b;
+}
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Catálogo de Productos</h2>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+</div>
+
+<!-- Barra de Búsqueda y Filtros -->
+<form method="GET" style="margin-bottom: 2rem; display: flex; gap: 10px; flex-wrap: wrap;">
+    <input type="text" name="busqueda" placeholder="Buscar licor..." value="{{ request.GET.busqueda|default:'' }}"
+        style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; min-width: 200px;">
+
+    <select name="categoria" onchange="this.form.submit()"
+        style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15, 23, 42, 0.8); color: white;">
+        <option value="">Todas las Categorías</option>
+        {% for categoria in categorias %}
+        <option value="{{ categoria.id }}" {% if request.GET.categoria|add:"0"==categoria.id %}selected{% endif %}>
+            {{ categoria.nombre }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary">
+        Buscar
+    </button>
+
+    {% if request.GET.busqueda or request.GET.categoria %}
+    <a href="{% url 'productos' %}" class="btn btn-secondary">
+        Limpiar
+    </a>
+    {% endif %}
+</form>
+
+<div class="product-grid">
+    {% for producto in productos %}
+    <div class="product-card">
+        <div class="img-container">
+            {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+            <span class="no-image">Sin imagen disponible</span>
+            {% endif %}
+        </div>
+
+        <div class="meta">
+            <span class="badge">{{ producto.grados_alcohol }}° Alc</span>
+            <span class="badge">Stock: {{ producto.stock }}</span>
+            {% if producto.distribuidor %}
+            <span class="badge" style="background: rgba(139, 92, 246, 0.2)">{{ producto.distribuidor.nombre }}</span>
+            {% endif %}
+        </div>
+
+        <h3>{{ producto.nombre }}</h3>
+
+        <div class="details">
+            <span class="price">${{ producto.precio }}</span>
+        </div>
+
+        {% if producto.stock > 0 %}
+        <a href="{% url 'agregar_carrito' producto.id %}" class="btn-add">Agregar al Carrito</a>
+        {% else %}
+        <button class="btn-add" style="background: #334155; cursor: not-allowed;" disabled>Agotado</button>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <h2>No hay productos disponibles</h2>
+        <p>Accede al admin para agregar nuevo inventario.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

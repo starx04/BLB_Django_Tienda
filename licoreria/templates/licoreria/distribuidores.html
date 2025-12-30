@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Distribuidores | Licorería Premium{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Distribuidores</h2>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dist in distribuidores %}
+        <tr>
+            <td>{{ dist.nombre }}</td>
+            <td>{{ dist.email|default:"-" }}</td>
+            <td>{{ dist.telefono|default:"-" }}</td>
+            <td>{{ dist.direccion|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="text-align: center; color: #64748b; padding: 2rem;">No hay distribuidores
+                registrados.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
