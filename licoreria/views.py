@@ -19,34 +19,42 @@ def productos(request):
     if busqueda:
         productos_list = productos_list.filter(Q(nombre__icontains=busqueda))
 
-    return render(request, 'licoreria/productos.html', {
+    return render(request, 'productos.html', {
         'productos': productos_list, 
         'categorias': categorias
     })
 
 def clientes(request):
     clientes_list = Clientes.objects.all()
-    return render(request, 'licoreria/clientes.html', {'clientes': clientes_list})
+    return render(request, 'clientes.html', {'clientes': clientes_list})
 
 def empleados(request):
     empleados_list = Empleados.objects.all()
-    return render(request, 'licoreria/empleados.html', {'empleados': empleados_list})
+    return render(request, 'empleados.html', {'empleados': empleados_list})
 
 def distribuidores(request):
     distribuidores_list = Distribuidores.objects.all()
-    return render(request, 'licoreria/distribuidores.html', {'distribuidores': distribuidores_list})
+    return render(request, 'distribuidores.html', {'distribuidores': distribuidores_list})
 
 def gastos(request):
     gastos_list = Gastos.objects.all()
-    return render(request, 'licoreria/gastos.html', {'gastos': gastos_list})
+    return render(request, 'gastos.html', {'gastos': gastos_list})
 
 def prestamos(request):
     prestamos_list = Prestamos.objects.all()
-    return render(request, 'licoreria/prestamos.html', {'prestamos': prestamos_list})
+    return render(request, 'prestamos.html', {'prestamos': prestamos_list})
 
 def ordenes(request):
     ordenes_list = Ordenes.objects.all()
-    return render(request, 'licoreria/ordenes.html', {'ordenes': ordenes_list})
+    return render(request, 'ordenes.html', {'ordenes': ordenes_list})
+
+def categorias(request):
+    categorias_list = Categorias.objects.all()
+    return render(request, 'categorias.html', {'categorias': categorias_list})
+
+def detalles_ordenes(request):
+    detalles = DetallesOrdenes.objects.all()
+    return render(request, 'detalles_ordenes.html', {'detalles': detalles})
 
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
@@ -77,7 +85,7 @@ def ver_carrito(request):
             'subtotal': subtotal
         })
     
-    return render(request, 'licoreria/carrito.html', {'items': items_carrito, 'total': total})
+    return render(request, 'carrito.html', {'items': items_carrito, 'total': total})
 
 def eliminar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
