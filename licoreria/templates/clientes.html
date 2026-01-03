@@ -2,15 +2,124 @@
 
 {% block title %}Clientes | Licorería Premium{% endblock %}
 
+{% block extra_css %}
+/* Estilos para el Modal y Formulario */
+.modal {
+display: none;
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0,0,0,0.7);
+backdrop-filter: blur(5px);
+}
+
+.modal-content {
+background-color: #1e293b;
+margin: 10% auto;
+padding: 2rem;
+border: 1px solid rgba(255, 255, 255, 0.1);
+width: 90%;
+max-width: 500px;
+border-radius: 16px;
+box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+position: relative;
+animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+from {transform: translateY(-50px); opacity: 0;}
+to {transform: translateY(0); opacity: 1;}
+}
+
+.close {
+color: #aaa;
+float: right;
+font-size: 28px;
+font-weight: bold;
+cursor: pointer;
+transition: color 0.2s;
+}
+
+.close:hover,
+.close:focus {
+color: white;
+text-decoration: none;
+cursor: pointer;
+}
+
+.form-group {
+margin-bottom: 1.5rem;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 0.5rem;
+color: #cbd5e1;
+font-weight: 500;
+}
+
+.form-control {
+width: 100%;
+padding: 12px;
+background: rgba(255, 255, 255, 0.05);
+border: 1px solid rgba(255, 255, 255, 0.1);
+border-radius: 8px;
+color: white;
+font-family: inherit;
+box-sizing: border-box;
+transition: border-color 0.2s, background 0.2s;
+}
+
+.form-control:focus {
+outline: none;
+border-color: var(--accent-color);
+background: rgba(255, 255, 255, 0.1);
+}
+
+.error-list {
+color: var(--danger-color);
+font-size: 0.85rem;
+margin-top: 5px;
+list-style: none;
+padding: 0;
+}
+
+.header-actions {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 2rem;
+}
+{% endblock %}
+
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Gestión de Clientes</h2>
-    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+<div class="header-actions">
+    <div>
+        <h2>Gestión de Clientes</h2>
+        <p style="color: #94a3b8; margin: 0;">Administra tu base de clientes y códigos únicos</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button id="btnNuevoCliente" class="btn btn-primary">+ Nuevo Cliente</button>
+        <a href="{% url 'index' %}" class="btn btn-secondary">← Volver</a>
+    </div>
 </div>
+
+<!-- Mensajes de error del formulario si existen (general) -->
+{% if form.errors %}
+<div
+    style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger-color); color: #fca5a5; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+    <strong>Atención:</strong> Por favor corrige los errores señalados abajo.
+</div>
+{% endif %}
 
 <table>
     <thead>
         <tr>
+            <th>Código Único</th>
             <th>Nombre</th>
             <th>Email</th>
             <th>Teléfono</th>
@@ -19,15 +128,83 @@
     <tbody>
         {% for cliente in clientes %}
         <tr>
+            <td>
+                <span
+                    style="font-family: monospace; background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 4px 8px; border-radius: 4px; font-weight: bold;">
+                    {{ cliente.codigo_unico }}
+                </span>
+            </td>
             <td>{{ cliente.nombre }}</td>
             <td>{{ cliente.email }}</td>
             <td>{{ cliente.telefono }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="3" style="text-align: center; color: #64748b; padding: 2rem;">No hay clientes registrados.</td>
+            <td colspan="4" style="text-align: center; color: #64748b; padding: 3rem;">
+                No hay clientes registrados aún.
+                <br><br>
+                <button onclick="document.getElementById('modalCliente').style.display='block'"
+                    class="btn btn-secondary">Registrar el primero</button>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Modal de Registro -->
+<div id="modalCliente" class="modal" {% if form.errors %}style="display: block;" {% endif %}>
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 style="margin-top: 0; color: var(--accent-color); margin-bottom: 1.5rem;">Registrar Cliente</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="error-list">
+                    {% for error in field.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cliente</button>
+                <button type="button" class="btn btn-danger close-btn" style="flex: 1;">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Lógica del Modal
+    var modal = document.getElementById("modalCliente");
+    var btn = document.getElementById("btnNuevoCliente");
+    var span = document.getElementsByClassName("close")[0];
+    var closeBtn = document.getElementsByClassName("close-btn")[0];
+
+    btn.onclick = function () {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    closeBtn.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
 {% endblock %}

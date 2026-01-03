@@ -24,9 +24,22 @@ def productos(request):
         'categorias': categorias
     })
 
+from .forms import ClienteForm
+
 def clientes(request):
-    clientes_list = Clientes.objects.all()
-    return render(request, 'clientes.html', {'clientes': clientes_list})
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('clientes')
+    else:
+        form = ClienteForm()
+
+    clientes_list = Clientes.objects.all().order_by('-id')
+    return render(request, 'clientes.html', {
+        'clientes': clientes_list,
+        'form': form
+    })
 
 def empleados(request):
     empleados_list = Empleados.objects.all()

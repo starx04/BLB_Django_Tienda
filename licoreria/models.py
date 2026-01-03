@@ -18,13 +18,22 @@ class Productos(models.Model):
     def __str__(self):
         return self.nombre
 
+import uuid
+
 class Clientes(models.Model):
     nombre = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
     telefono = models.CharField(max_length=20)
+    codigo_unico = models.CharField(max_length=10, unique=True, blank=True, null=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_unico:
+            # Generar código único de 8 caracteres
+            self.codigo_unico = str(uuid.uuid4())[:8].upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.codigo_unico})"
 
 class Empleados(models.Model):
     nombre = models.CharField(max_length=150)
