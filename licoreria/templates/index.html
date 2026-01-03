@@ -1,103 +1,135 @@
 {% extends 'base.html' %}
 
-{% block title %}Inicio | Licorería Premium{% endblock %}
+{% block header_title %}Resumen General{% endblock %}
 
 {% block extra_css %}
-.dashboard-grid {
+.stats-grid {
 display: grid;
-grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-gap: 2rem;
-margin-top: 2rem;
+grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+gap: 1.5rem;
+margin-bottom: 2rem;
 }
 
-.dashboard-card {
-background: var(--card-bg);
-border: 1px solid rgba(255, 255, 255, 0.1);
+.stat-card {
+background: var(--bg-sidebar);
+padding: 1.5rem;
 border-radius: 16px;
-padding: 2rem;
-text-align: center;
-text-decoration: none;
-color: var(--text-color);
-transition: all 0.3s ease;
+border: 1px solid var(--border);
 display: flex;
-flex-direction: column;
+align-items: center;
+gap: 1rem;
+transition: transform 0.2s;
+}
+
+.stat-card:hover {
+transform: translateY(-3px);
+border-color: var(--accent);
+}
+
+.stat-icon {
+width: 50px;
+height: 50px;
+border-radius: 12px;
+background: rgba(139, 92, 246, 0.1);
+color: var(--accent);
+display: flex;
 align-items: center;
 justify-content: center;
-min-height: 200px;
+font-size: 1.5rem;
 }
 
-.dashboard-card:hover {
-transform: translateY(-5px);
-background: rgba(255, 255, 255, 0.08);
-border-color: var(--accent-color);
-box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-.card-icon {
-font-size: 3rem;
-margin-bottom: 1rem;
-}
-
-.card-title {
+.stat-info h3 {
+margin: 0;
 font-size: 1.5rem;
 font-weight: 700;
-margin-bottom: 0.5rem;
 }
 
-.card-desc {
-color: #94a3b8;
-font-size: 0.9rem;
+.stat-info p {
+margin: 0;
+font-size: 0.85rem;
+color: var(--text-secondary);
+}
+
+.quick-actions-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 1.5rem;
+}
+
+.action-card {
+background: var(--bg-card);
+padding: 2rem;
+border-radius: 16px;
+text-align: center;
+text-decoration: none;
+color: white;
+border: 1px solid var(--border);
+transition: all 0.2s;
+}
+
+.action-card:hover {
+background: var(--bg-sidebar);
+border-color: var(--accent);
+}
+
+.action-card i {
+font-size: 2rem;
+margin-bottom: 1rem;
+color: var(--accent);
+display: block;
 }
 {% endblock %}
 
 {% block content %}
-<div style="text-align: center; margin-bottom: 3rem;">
-    <h1 style="font-size: 3rem; margin-bottom: 1rem;">Bienvenido</h1>
-    <p style="font-size: 1.2rem; color: #94a3b8;">Sistema de Gestión de Licorería Exclusiva</p>
+<!-- Tarjetas de Estadísticas (Ficticias por ahora, se pueden conectar a backend) -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="ph ph-currency-dollar"></i></div>
+        <div class="stat-info">
+            <h3>$1,204</h3>
+            <p>Ventas Hoy</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="ph ph-shopping-bag"></i></div>
+        <div class="stat-info">
+            <h3>12</h3>
+            <p>Pedidos Nuevos</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="ph ph-users"></i></div>
+        <div class="stat-info">
+            <h3>{{ clientes.count|default:"85" }}</h3>
+            <p>Clientes Activos</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="ph ph-package"></i></div>
+        <div class="stat-info">
+            <h3>340</h3>
+            <p>Productos Stock</p>
+        </div>
+    </div>
 </div>
 
-<div class="dashboard-grid">
-    <a href="{% url 'productos' %}" class="dashboard-card">
-        <div class="card-icon">🍾</div>
-        <div class="card-title">Catálogo</div>
-        <div class="card-desc">Ver y gestionar productos</div>
+<h3 style="margin-bottom: 1.5rem; font-weight: 600;">Accesos Rápidos</h3>
+<div class="quick-actions-grid">
+    <a href="{% url 'productos' %}" class="action-card">
+        <i class="ph ph-plus-circle"></i>
+        <span>Nuevo Producto</span>
     </a>
-
-    <a href="{% url 'clientes' %}" class="dashboard-card">
-        <div class="card-icon">👥</div>
-        <div class="card-title">Clientes</div>
-        <div class="card-desc">Administrar base de clientes</div>
+    <a href="{% url 'clientes' %}" class="action-card">
+        <i class="ph ph-user-plus"></i>
+        <span>Registrar Cliente</span>
     </a>
-
-    <a href="{% url 'empleados' %}" class="dashboard-card">
-        <div class="card-icon">👔</div>
-        <div class="card-title">Personal</div>
-        <div class="card-desc">Equipo de trabajo</div>
+    <a href="{% url 'gastos' %}" class="action-card">
+        <i class="ph ph-receipt"></i>
+        <span>Reportar Gasto</span>
     </a>
-
-    <a href="{% url 'ordenes' %}" class="dashboard-card">
-        <div class="card-icon">📦</div>
-        <div class="card-title">Órdenes</div>
-        <div class="card-desc">Historial de ventas</div>
-    </a>
-
-    <!-- Solo visible si se necesitara, por ahora mostramos todos -->
-    <a href="{% url 'gastos' %}" class="dashboard-card">
-        <div class="card-icon">💸</div>
-        <div class="card-title">Gastos</div>
-        <div class="card-desc">Control financiero</div>
-    </a>
-
-    <a href="{% url 'prestamos' %}" class="dashboard-card">
-        <div class="card-icon">🤝</div>
-        <div class="card-title">Préstamos</div>
-        <div class="card-desc">Envases y créditos</div>
-    </a>
-
-    <a href="{% url 'distribuidores' %}" class="dashboard-card">
-        <div class="card-icon">🚛</div>
-        <div class="card-title">Distribuidores</div>
-        <div class="card-desc">Proveedores externos</div>
+    <a href="{% url 'ordenes' %}" class="action-card">
+        <i class="ph ph-clock-counter-clockwise"></i>
+        <span>Historial</span>
     </a>
 </div>
 {% endblock %}

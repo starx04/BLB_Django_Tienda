@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Licorería Premium{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Iconos Phosphor (más modernos) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-card: #28364d;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand i {
+            color: var(--accent);
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-item a:hover,
+        .nav-item a.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .nav-item a i {
+            font-size: 1.2rem;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-wrapper {
+            flex: 1;
+            margin-left: 260px;
+            /* Ancho de sidebar */
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 260px);
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .page-title h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .cart-btn {
+            position: relative;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+
+        .cart-btn:hover {
+            color: var(--accent);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 99px;
+            border: 2px solid var(--bg-sidebar);
+        }
+
+        .content-container {
+            padding: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* --- UTILITIES & COMPONENTS --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--bg-sidebar);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        th {
+            background: #273549;
+            /* Ligeramente más claro que sidebar */
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+            {
+            % block extra_css %
+        }
+
+            {
+            % endblock %
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <a href="{% url 'index' %}" class="brand">
+            <i class="ph ph-brandy"></i>
+            <span>Licorería</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="{% url 'index' %}"
+                    class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                    <i class="ph ph-squares-four"></i> Inicio
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'productos' %}"
+                    class="{% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+                    <i class="ph ph-bottle"></i> Catálogo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'ordenes' %}"
+                    class="{% if request.resolver_match.url_name == 'ordenes' %}active{% endif %}">
+                    <i class="ph ph-shopping-cart"></i> Ventas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'clientes' %}"
+                    class="{% if request.resolver_match.url_name == 'clientes' %}active{% endif %}">
+                    <i class="ph ph-users"></i> Clientes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'categorias' %}"
+                    class="{% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
+                    <i class="ph ph-tag"></i> Categorías
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'empleados' %}"
+                    class="{% if request.resolver_match.url_name == 'empleados' %}active{% endif %}">
+                    <i class="ph ph-identification-card"></i> Personal
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'distribuidores' %}"
+                    class="{% if request.resolver_match.url_name == 'distribuidores' %}active{% endif %}">
+                    <i class="ph ph-truck"></i> Distribuidores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'gastos' %}"
+                    class="{% if request.resolver_match.url_name == 'gastos' %}active{% endif %}">
+                    <i class="ph ph-money"></i> Gastos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'prestamos' %}"
+                    class="{% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+                    <i class="ph ph-handshake"></i> Préstamos
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <header>
+            <div class="page-title">
+                <h2>{% block header_title %}Dashboard{% endblock %}</h2>
+            </div>
+
+            <div class="header-actions">
+                <a href="{% url 'ver_carrito' %}" class="cart-btn" title="Ver Carrito">
+                    <i class="ph ph-shopping-bag"></i>
+                    {% if request.session.cart %}
+                    <span class="cart-badge">{{ request.session.cart.values|add:"0" }}</span>
+                    {% endif %}
+                </a>
+                <!-- Aquí podrías poner un avatar de usuario -->
+                <div
+                    style="width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    A
+                </div>
+            </div>
+        </header>
+
+        <main class="content-container">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <!-- Modal Edad -->
+    <div id="ageModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;">
+        <div
+            style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; text-align: center; max-width: 400px; border: 1px solid var(--border);">
+            <i class="ph ph-warning-circle" style="font-size: 3rem; color: var(--accent); margin-bottom: 1rem;"></i>
+            <h2 style="margin-top: 0;">Verificación Requerida</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">¿Eres mayor de 18 años?</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button onclick="verificarEdad(true)" class="btn btn-primary">Sí, entrar</button>
+                <button onclick="verificarEdad(false)" class="btn btn-secondary">No, salir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function verificarEdad(esMayor) {
+            if (esMayor) {
+                localStorage.setItem('esMayorEdad', 'true');
+                document.getElementById('ageModal').style.display = 'none';
+            } else {
+                location.href = "https://google.com";
+            }
+        }
+        if (!localStorage.getItem('esMayorEdad')) {
+            // document.getElementById('ageModal').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
