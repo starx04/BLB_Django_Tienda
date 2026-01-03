@@ -252,15 +252,10 @@
         tr:hover td {
             background: rgba(255, 255, 255, 0.02);
         }
-
-            {
-            % block extra_css %
-        }
-
-            {
-            % endblock %
-        }
     </style>
+    <!-- Estilos específicos de cada página -->
+    {% block extra_css %}
+    {% endblock %}
 </head>
 
 <body>
@@ -382,7 +377,7 @@
             }
         }
         if (!localStorage.getItem('esMayorEdad')) {
-            // document.getElementById('ageModal').style.display = 'flex';
+            document.getElementById('ageModal').style.display = 'flex';
         }
     </script>
 </body>

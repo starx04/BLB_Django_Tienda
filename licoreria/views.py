@@ -2,8 +2,26 @@ from django.shortcuts import render, redirect
 from django.db.models import Q
 from .models import Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, Empleados, Distribuidores, Gastos, Prestamos
 
+from django.db.models import Sum
+from django.utils import timezone
+
 def index(request):
-    return render(request, 'index.html')
+    # Obtener fecha de hoy
+    hoy = timezone.now().date()
+    
+    # Estadísticas Reales
+    ventas_hoy = Ordenes.objects.filter(fecha__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
+    pedidos_nuevos = Ordenes.objects.filter(fecha__date=hoy).count()
+    clientes_activos = Clientes.objects.count()
+    productos_stock = Productos.objects.aggregate(Sum('stock'))['stock__sum'] or 0
+
+    context = {
+        'ventas_hoy': ventas_hoy,
+        'pedidos_nuevos': pedidos_nuevos,
+        'clientes_activos': clientes_activos,
+        'productos_stock': productos_stock
+    }
+    return render(request, 'index.html', context)
 
 def productos(request):
     categorias = Categorias.objects.all()

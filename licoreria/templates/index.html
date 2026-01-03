@@ -86,29 +86,29 @@ display: block;
     <div class="stat-card">
         <div class="stat-icon"><i class="ph ph-currency-dollar"></i></div>
         <div class="stat-info">
-            <h3>$1,204</h3>
+            <h3>${{ ventas_hoy }}</h3>
             <p>Ventas Hoy</p>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon"><i class="ph ph-shopping-bag"></i></div>
         <div class="stat-info">
-            <h3>12</h3>
+            <h3>{{ pedidos_nuevos }}</h3>
             <p>Pedidos Nuevos</p>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon"><i class="ph ph-users"></i></div>
         <div class="stat-info">
-            <h3>{{ clientes.count|default:"85" }}</h3>
-            <p>Clientes Activos</p>
+            <h3>{{ clientes_activos }}</h3>
+            <p>Clientes Registrados</p>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon"><i class="ph ph-package"></i></div>
         <div class="stat-info">
-            <h3>340</h3>
-            <p>Productos Stock</p>
+            <h3>{{ productos_stock }}</h3>
+            <p>Unidades en Stock</p>
         </div>
     </div>
 </div>
