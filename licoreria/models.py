@@ -6,6 +6,14 @@ class Categorias(models.Model):
     def __str__(self):
         return self.nombre
 
+class Marcas(models.Model):
+    nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la Marca")
+    logo = models.ImageField(upload_to='marcas/', null=True, blank=True, verbose_name="Logo de la Marca")
+    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
+
+    def __str__(self):
+        return self.nombre
+
 class Productos(models.Model):
     nombre = models.CharField(max_length=200)
     categoria = models.ForeignKey(Categorias, on_delete=models.CASCADE, related_name='productos', null=True, blank=True)
@@ -17,7 +25,7 @@ class Productos(models.Model):
     
     # Campos Integración APIs Externas
     codigo_barras = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Código EAN/UPC")
-    marca = models.CharField(max_length=100, blank=True, null=True)
+    marca = models.ForeignKey(Marcas, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos', verbose_name="Marca")
     url_imagen_externa = models.URLField(max_length=500, blank=True, null=True, verbose_name="URL Imagen API")
     ingredientes = models.TextField(blank=True, null=True, help_text="Lista de ingredientes (para snacks)")
     id_externo_api = models.CharField(max_length=100, blank=True, null=True, help_text="ID referencia en API externa")
