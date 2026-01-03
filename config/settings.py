@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-gcf9(apq2frr^h0n@92jlyf++qdj8h^oa=&0g%68y!7l6pw_l)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'licoreria',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

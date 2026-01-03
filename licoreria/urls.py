@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, api_views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -16,4 +16,8 @@ urlpatterns = [
     path('carrito/', views.ver_carrito, name='ver_carrito'),
     path('eliminar/<int:producto_id>/', views.eliminar_carrito, name='eliminar_carrito'),
     path('checkout/', views.checkout_whatsapp, name='checkout_whatsapp'),
+    
+    # Endpoints de API
+    path('api/licores/', api_views.LicoresAPI.as_view(), name='api_licores'),
+    path('api/snacks/', api_views.SnacksAPI.as_view(), name='api_snacks'),
 ]
