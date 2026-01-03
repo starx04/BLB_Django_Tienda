@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Iconos Phosphor (más modernos) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <style>
         :root {
@@ -338,10 +340,14 @@
                     <span class="cart-badge">{{ request.session.cart.values|add:"0" }}</span>
                     {% endif %}
                 </a>
-                <!-- Aquí podrías poner un avatar de usuario -->
-                <div
-                    style="width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    A
+                <!-- Avatar de usuario -->
+                <div style="width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: help;"
+                    title="{{ request.user.username|default:'Invitado' }}">
+                    {% if request.user.is_authenticated %}
+                    {{ request.user.username|slice:":1"|upper }}
+                    {% else %}
+                    <i class="ph ph-user"></i>
+                    {% endif %}
                 </div>
             </div>
         </header>
@@ -367,6 +373,9 @@
         </div>
     </div>
 
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <script>
         function verificarEdad(esMayor) {
             if (esMayor) {
@@ -378,6 +387,66 @@
         }
         if (!localStorage.getItem('esMayorEdad')) {
             document.getElementById('ageModal').style.display = 'flex';
+        }
+
+        // AJAX Add to Cart
+        async function addToCart(event, productoId) {
+            event.preventDefault();
+            const btn = event.currentTarget;
+
+            // Animación simple de click
+            btn.style.transform = "scale(0.95)";
+            setTimeout(() => btn.style.transform = "scale(1)", 150);
+
+            try {
+                const response = await fetch(`/agregar-carrito/${productoId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Actualizar badge del carrito
+                    const badge = document.querySelector('.cart-badge');
+                    if (badge) {
+                        badge.textContent = data.cart_count;
+                        // Pequeña animación del badge
+                        badge.style.transform = "scale(1.2)";
+                        setTimeout(() => badge.style.transform = "scale(1)", 200);
+                    } else {
+                        // Si no existía badge (count era 0), recargar es lo más fácil para que aparezca, 
+                        // pero idealmente deberíamos inyectarlo. Por simplicidad, si es la primera, solo notificamos.
+                        const cartBtn = document.querySelector('.cart-btn');
+                        if (cartBtn && data.cart_count > 0) {
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'cart-badge';
+                            newBadge.textContent = data.cart_count;
+                            cartBtn.appendChild(newBadge);
+                        }
+                    }
+
+                    // Mostrar Toast
+                    Toastify({
+                        text: "Producto agregado al carrito 🛒",
+                        duration: 3000,
+                        gravity: "bottom",
+                        position: "right",
+                        style: {
+                            background: "var(--success)",
+                            borderRadius: "10px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                        }
+                    }).showToast();
+
+                } else {
+                    console.error('Error al agregar');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+            }
         }
     </script>
 </body>

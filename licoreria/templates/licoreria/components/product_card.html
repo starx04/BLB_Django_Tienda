@@ -33,10 +33,11 @@
         </div>
 
         <div class="card-footer">
-            <span class="price">${{ producto.precio }}</span>
+            <span class="price">${{ producto.precio|floatformat:2 }}</span>
 
             {% if producto.stock > 0 %}
-            <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito">
+            <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito"
+                onclick="addToCart(event, {{ producto.id }})">
                 <i class="ph ph-plus-bold"></i>
             </a>
             {% else %}

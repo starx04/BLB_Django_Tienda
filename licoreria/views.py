@@ -111,6 +111,8 @@ def detalles_ordenes(request):
     detalles = DetallesOrdenes.objects.all()
     return render(request, 'detalles_ordenes.html', {'detalles': detalles})
 
+from django.http import JsonResponse
+
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
@@ -121,6 +123,11 @@ def agregar_carrito(request, producto_id):
         carrito[prod_id_str] = 1
     
     request.session['cart'] = carrito
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+         total_items = sum(carrito.values())
+         return JsonResponse({'message': 'Agregado', 'cart_count': total_items})
+
     return redirect('productos')
 
 def ver_carrito(request):
