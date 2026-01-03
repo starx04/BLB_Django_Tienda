@@ -1,137 +1,207 @@
 {% extends 'base.html' %}
 
-{% block title %}Productos | Licorería Premium{% endblock %}
+{% block header_title %}Catálogo de Productos{% endblock %}
 
 {% block extra_css %}
-.product-grid {
+/* Barra de herramientas (Buscador y filtros) */
+.toolbar {
+background: var(--bg-card);
+padding: 1.5rem;
+border-radius: 16px;
+border: 1px solid var(--border);
+margin-bottom: 2rem;
+display: flex;
+flex-wrap: wrap;
+gap: 1rem;
+align-items: center;
+box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+flex: 1;
+min-width: 250px;
+position: relative;
+}
+
+.search-input i {
+position: absolute;
+left: 1rem;
+top: 50%;
+transform: translateY(-50%);
+color: var(--text-secondary);
+}
+
+.search-input input {
+width: 100%;
+padding: 12px 1rem 12px 3rem;
+border-radius: 12px;
+border: 1px solid var(--border);
+background: var(--bg-sidebar);
+color: white;
+font-size: 0.95rem;
+transition: border-color 0.2s;
+}
+
+.search-input input:focus {
+outline: none;
+border-color: var(--accent);
+}
+
+.filter-select {
+padding: 12px 2rem 12px 1rem;
+border-radius: 12px;
+border: 1px solid var(--border);
+background: var(--bg-sidebar);
+color: white;
+cursor: pointer;
+min-width: 180px;
+}
+
+/* Grid de Productos */
+.products-grid {
 display: grid;
 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 gap: 2rem;
 }
 
 .product-card {
-background: var(--card-bg);
+background: var(--bg-sidebar);
 border-radius: 16px;
-padding: 1.5rem;
-border: 1px solid rgba(255, 255, 255, 0.1);
-transition: transform 0.3s ease, box-shadow 0.3s ease;
+border: 1px solid var(--border);
+overflow: hidden;
 display: flex;
 flex-direction: column;
-overflow: hidden;
+transition: transform 0.3s ease, border-color 0.3s ease;
 position: relative;
 }
 
 .product-card:hover {
 transform: translateY(-5px);
-box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-border-color: rgba(139, 92, 246, 0.3);
+border-color: var(--accent);
+box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-.img-container {
+.card-img {
+height: 220px;
 width: 100%;
-height: 250px;
-border-radius: 12px;
+background: #1e293b;
+position: relative;
 overflow: hidden;
-margin-bottom: 1rem;
-background-color: #1e293b;
 display: flex;
 align-items: center;
 justify-content: center;
 }
 
-.product-card img {
+.card-img img {
 width: 100%;
 height: 100%;
 object-fit: cover;
 transition: transform 0.5s ease;
 }
 
-.product-card:hover img {
-transform: scale(1.05);
+.product-card:hover .card-img img {
+transform: scale(1.08);
 }
 
-.no-image {
-color: #64748b;
-font-size: 0.9rem;
+.stock-badge {
+position: absolute;
+top: 1rem;
+right: 1rem;
+background: rgba(0, 0, 0, 0.7);
+backdrop-filter: blur(4px);
+padding: 4px 10px;
+border-radius: 20px;
+font-size: 0.75rem;
+font-weight: bold;
+color: white;
+border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-h3 {
-margin: 0.5rem 0;
-font-size: 1.25rem;
+.stock-low {
+background: rgba(239, 68, 68, 0.9);
+}
+
+.card-content {
+padding: 1.5rem;
+flex: 1;
+display: flex;
+flex-direction: column;
+}
+
+.brand {
+font-size: 0.8rem;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+color: var(--accent);
+margin-bottom: 0.5rem;
 font-weight: 600;
 }
 
-.details {
+.title {
+font-size: 1.1rem;
+margin: 0 0 0.5rem 0;
+font-weight: 700;
+line-height: 1.4;
+}
+
+.meta-tags {
 display: flex;
-justify-content: space-between;
-align-items: center;
+gap: 8px;
+margin-bottom: 1rem;
+flex-wrap: wrap;
+}
+
+.tag {
+background: rgba(255, 255, 255, 0.05);
+padding: 2px 8px;
+border-radius: 6px;
+font-size: 0.75rem;
+color: var(--text-secondary);
+}
+
+.card-footer {
 margin-top: auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
 padding-top: 1rem;
+border-top: 1px solid var(--border);
 }
 
 .price {
-font-size: 1.5rem;
+font-size: 1.4rem;
 font-weight: 700;
-color: var(--price-color);
+color: var(--success);
 }
 
-.meta {
-font-size: 0.85rem;
-color: #94a3b8;
-display: flex;
-gap: 10px;
-margin-bottom: 0.5rem;
-}
-
-.badge {
-background: rgba(255, 255, 255, 0.1);
-padding: 4px 8px;
-border-radius: 6px;
-}
-
-.btn-add {
-display: block;
-width: 100%;
-margin-top: 1rem;
-padding: 0.8rem;
-background: var(--accent-color);
+.add-btn {
+background: var(--accent);
 color: white;
-border: none;
-border-radius: 8px;
-font-weight: 600;
-cursor: pointer;
-transition: background 0.2s;
-font-family: inherit;
-text-align: center;
+width: 36px;
+height: 36px;
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
 text-decoration: none;
+transition: all 0.2s;
 }
 
-.btn-add:hover {
+.add-btn:hover {
 background: var(--accent-hover);
-}
-
-/* Empty state */
-.empty-state {
-text-align: center;
-grid-column: 1 / -1;
-padding: 4rem;
-color: #64748b;
+transform: scale(1.1);
 }
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Catálogo de Productos</h2>
-    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
-</div>
+<form method="GET" class="toolbar">
+    <div class="search-input">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="busqueda" placeholder="Buscar por nombre, código de barras..."
+            value="{{ request.GET.busqueda|default:'' }}">
+    </div>
 
-<!-- Barra de Búsqueda y Filtros -->
-<form method="GET" style="margin-bottom: 2rem; display: flex; gap: 10px; flex-wrap: wrap;">
-    <input type="text" name="busqueda" placeholder="Buscar licor..." value="{{ request.GET.busqueda|default:'' }}"
-        style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; min-width: 200px;">
-
-    <select name="categoria" onchange="this.form.submit()"
-        style="padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15, 23, 42, 0.8); color: white;">
+    <select name="categoria" class="filter-select" onchange="this.form.submit()">
         <option value="">Todas las Categorías</option>
         {% for categoria in categorias %}
         <option value="{{ categoria.id }}" {% if request.GET.categoria|add:"0"==categoria.id %}selected{% endif %}>
@@ -140,52 +210,69 @@ color: #64748b;
         {% endfor %}
     </select>
 
-    <button type="submit" class="btn btn-primary">
-        Buscar
-    </button>
-
     {% if request.GET.busqueda or request.GET.categoria %}
     <a href="{% url 'productos' %}" class="btn btn-secondary">
-        Limpiar
+        <i class="ph ph-x"></i> Limpiar Filtros
     </a>
     {% endif %}
 </form>
 
-<div class="product-grid">
+<div class="products-grid">
     {% for producto in productos %}
     <div class="product-card">
-        <div class="img-container">
-            {% if producto.imagen %}
+        <div class="card-img">
+            {% if producto.url_imagen_externa %}
+            <img src="{{ producto.url_imagen_externa }}" alt="{{ producto.nombre }}">
+            {% elif producto.imagen %}
             <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
             {% else %}
-            <span class="no-image">Sin imagen disponible</span>
+            <div style="text-align: center; color: var(--text-secondary);">
+                <i class="ph ph-image-broken" style="font-size: 3rem; opacity: 0.3;"></i>
+            </div>
             {% endif %}
+
+            <div class="stock-badge {% if producto.stock < 5 %}stock-low{% endif %}">
+                {% if producto.stock > 0 %}
+                Stock: {{ producto.stock }}
+                {% else %}
+                Agotado
+                {% endif %}
+            </div>
         </div>
 
-        <div class="meta">
-            <span class="badge">{{ producto.grados_alcohol }}° Alc</span>
-            <span class="badge">Stock: {{ producto.stock }}</span>
-            {% if producto.distribuidor %}
-            <span class="badge" style="background: rgba(139, 92, 246, 0.2)">{{ producto.distribuidor.nombre }}</span>
-            {% endif %}
+        <div class="card-content">
+            <div class="brand">{{ producto.marca|default:producto.categoria.nombre|default:"General" }}</div>
+            <h3 class="title">{{ producto.nombre }}</h3>
+
+            <div class="meta-tags">
+                {% if producto.grados_alcohol > 0 %}
+                <span class="tag"><i class="ph ph-drop"></i> {{ producto.grados_alcohol }}% Alc</span>
+                {% endif %}
+                {% if producto.codigo_barras %}
+                <span class="tag"><i class="ph ph-barcode"></i> UPC</span>
+                {% endif %}
+            </div>
+
+            <div class="card-footer">
+                <span class="price">${{ producto.precio }}</span>
+
+                {% if producto.stock > 0 %}
+                <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito">
+                    <i class="ph ph-plus-bold"></i>
+                </a>
+                {% else %}
+                <button class="add-btn" style="background: #475569; cursor: not-allowed;" disabled>
+                    <i class="ph ph-minus"></i>
+                </button>
+                {% endif %}
+            </div>
         </div>
-
-        <h3>{{ producto.nombre }}</h3>
-
-        <div class="details">
-            <span class="price">${{ producto.precio }}</span>
-        </div>
-
-        {% if producto.stock > 0 %}
-        <a href="{% url 'agregar_carrito' producto.id %}" class="btn-add">Agregar al Carrito</a>
-        {% else %}
-        <button class="btn-add" style="background: #334155; cursor: not-allowed;" disabled>Agotado</button>
-        {% endif %}
     </div>
     {% empty %}
-    <div class="empty-state">
-        <h2>No hay productos disponibles</h2>
-        <p>Accede al admin para agregar nuevo inventario.</p>
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+        <i class="ph ph-magnifying-glass" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <h3>No se encontraron productos</h3>
+        <p>Intenta ajustar tu búsqueda o filtros.</p>
     </div>
     {% endfor %}
 </div>

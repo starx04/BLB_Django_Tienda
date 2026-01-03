@@ -14,6 +14,13 @@ class Productos(models.Model):
     stock = models.IntegerField()
     grados_alcohol = models.DecimalField(max_digits=4, decimal_places=1)
     imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
+    
+    # Campos Integración APIs Externas
+    codigo_barras = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Código EAN/UPC")
+    marca = models.CharField(max_length=100, blank=True, null=True)
+    url_imagen_externa = models.URLField(max_length=500, blank=True, null=True, verbose_name="URL Imagen API")
+    ingredientes = models.TextField(blank=True, null=True, help_text="Lista de ingredientes (para snacks)")
+    id_externo_api = models.CharField(max_length=100, blank=True, null=True, help_text="ID referencia en API externa")
 
     def __str__(self):
         return self.nombre
