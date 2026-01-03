@@ -1,0 +1,49 @@
+<div class="product-card">
+    <div class="card-img">
+        {% if producto.url_imagen_externa %}
+        <img src="{{ producto.url_imagen_externa }}" alt="{{ producto.nombre }}">
+        {% elif producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+        <div style="text-align: center; color: var(--text-secondary);">
+            <i class="ph ph-image-broken" style="font-size: 3rem; opacity: 0.3;"></i>
+        </div>
+        {% endif %}
+
+        <div class="stock-badge {% if producto.stock < 5 %}stock-low{% endif %}">
+            {% if producto.stock > 0 %}
+            Stock: {{ producto.stock }}
+            {% else %}
+            Agotado
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card-content">
+        <div class="brand">{{ producto.marca|default:producto.categoria.nombre|default:"General" }}</div>
+        <h3 class="title">{{ producto.nombre }}</h3>
+
+        <div class="meta-tags">
+            {% if producto.grados_alcohol > 0 %}
+            <span class="tag"><i class="ph ph-drop"></i> {{ producto.grados_alcohol }}% Alc</span>
+            {% endif %}
+            {% if producto.codigo_barras %}
+            <span class="tag"><i class="ph ph-barcode"></i> UPC</span>
+            {% endif %}
+        </div>
+
+        <div class="card-footer">
+            <span class="price">${{ producto.precio }}</span>
+
+            {% if producto.stock > 0 %}
+            <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito">
+                <i class="ph ph-plus-bold"></i>
+            </a>
+            {% else %}
+            <button class="add-btn" style="background: #475569; cursor: not-allowed;" disabled>
+                <i class="ph ph-minus"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>

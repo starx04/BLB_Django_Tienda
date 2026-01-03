@@ -54,9 +54,36 @@ class Empleados(models.Model):
     nombre = models.CharField(max_length=150)
     cargo = models.CharField(max_length=100)
     sueldo = models.DecimalField(max_digits=10, decimal_places=2)
+    codigo_unico = models.CharField(max_length=10, unique=True, blank=True, null=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_unico:
+            self.codigo_unico = str(uuid.uuid4())[:8].upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.codigo_unico})"
+
+
+class ListasPrecios(models.Model):
+    nombre = models.CharField(max_length=100, verbose_name="Nombre de la Lista")
+    descripcion = models.TextField(blank=True, null=True)
+    activa = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre
+
+
+class PrecioProducto(models.Model):
+    lista = models.ForeignKey(ListasPrecios, on_delete=models.CASCADE, related_name='precios')
+    producto = models.ForeignKey(Productos, on_delete=models.CASCADE, related_name='precios_especiales')
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('lista', 'producto')
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.lista.nombre}: ${self.precio}"
 
 class Ordenes(models.Model):
     cliente = models.ForeignKey(Clientes, on_delete=models.CASCADE)

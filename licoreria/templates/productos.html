@@ -217,57 +217,20 @@ transform: scale(1.1);
     {% endif %}
 </form>
 
+<!-- Mensajes de resultado -->
+{% if modo_busqueda %}
+<div style="margin-bottom: 2rem; color: var(--text-secondary);">
+    {% if productos_globales %}
+    Se encontraron {{ productos_globales.count }} resultados
+    {% else %}
+    No se encontraron resultados
+    {% endif %}
+</div>
+
+<!-- VISTA LINEAL (Búsqueda o Filtro) -->
 <div class="products-grid">
-    {% for producto in productos %}
-    <div class="product-card">
-        <div class="card-img">
-            {% if producto.url_imagen_externa %}
-            <img src="{{ producto.url_imagen_externa }}" alt="{{ producto.nombre }}">
-            {% elif producto.imagen %}
-            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-            {% else %}
-            <div style="text-align: center; color: var(--text-secondary);">
-                <i class="ph ph-image-broken" style="font-size: 3rem; opacity: 0.3;"></i>
-            </div>
-            {% endif %}
-
-            <div class="stock-badge {% if producto.stock < 5 %}stock-low{% endif %}">
-                {% if producto.stock > 0 %}
-                Stock: {{ producto.stock }}
-                {% else %}
-                Agotado
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card-content">
-            <div class="brand">{{ producto.marca|default:producto.categoria.nombre|default:"General" }}</div>
-            <h3 class="title">{{ producto.nombre }}</h3>
-
-            <div class="meta-tags">
-                {% if producto.grados_alcohol > 0 %}
-                <span class="tag"><i class="ph ph-drop"></i> {{ producto.grados_alcohol }}% Alc</span>
-                {% endif %}
-                {% if producto.codigo_barras %}
-                <span class="tag"><i class="ph ph-barcode"></i> UPC</span>
-                {% endif %}
-            </div>
-
-            <div class="card-footer">
-                <span class="price">${{ producto.precio }}</span>
-
-                {% if producto.stock > 0 %}
-                <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito">
-                    <i class="ph ph-plus-bold"></i>
-                </a>
-                {% else %}
-                <button class="add-btn" style="background: #475569; cursor: not-allowed;" disabled>
-                    <i class="ph ph-minus"></i>
-                </button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+    {% for producto in productos_globales %}
+    {% include "licoreria/components/product_card.html" with producto=producto %}
     {% empty %}
     <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
         <i class="ph ph-magnifying-glass" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
@@ -276,4 +239,32 @@ transform: scale(1.1);
     </div>
     {% endfor %}
 </div>
+
+{% else %}
+<!-- VISTA POR CATEGORÍAS (Modo Exploración) -->
+{% for grupo in categorias_preview %}
+<div style="margin-bottom: 3rem;">
+    <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+        <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 10px;">
+            <i class="ph ph-tag" style="color: var(--accent);"></i> {{ grupo.categoria.nombre }}
+        </h2>
+        <a href="?categoria={{ grupo.categoria.id }}"
+            style="color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+            Ver todos <i class="ph ph-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="products-grid">
+        {% for producto in grupo.productos %}
+        {% include "licoreria/components/product_card.html" with producto=producto %}
+        {% endfor %}
+    </div>
+</div>
+{% empty %}
+<div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+    <h3>No hay categorías con productos disponibles</h3>
+</div>
+{% endfor %}
+{% endif %}
 {% endblock %}

@@ -6,23 +6,47 @@ def index(request):
     return render(request, 'index.html')
 
 def productos(request):
-    productos_list = Productos.objects.all()
     categorias = Categorias.objects.all()
 
     # Filtros
     categoria_id = request.GET.get('categoria')
     busqueda = request.GET.get('busqueda')
-
-    if categoria_id:
-        productos_list = productos_list.filter(categoria_id=categoria_id)
     
-    if busqueda:
-        productos_list = productos_list.filter(Q(nombre__icontains=busqueda))
+    context = {
+        'categorias': categorias,
+        'busqueda': busqueda,
+        'categoria_id': categoria_id
+    }
 
-    return render(request, 'productos.html', {
-        'productos': productos_list, 
-        'categorias': categorias
-    })
+    if busqueda:
+        # Búsqueda global (ignora agrupación)
+        productos_list = Productos.objects.filter(Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda))
+        if categoria_id:
+            productos_list = productos_list.filter(categoria_id=categoria_id)
+        
+        context['productos_globales'] = productos_list
+        context['modo_busqueda'] = True
+
+    elif categoria_id:
+        # Filtro específico de categoría (mostrar todos de esa categoría)
+        productos_list = Productos.objects.filter(categoria_id=categoria_id)
+        context['productos_globales'] = productos_list
+        context['modo_busqueda'] = True # Usamos el mismo layout de grilla completa
+
+    else:
+        # Modo Exploración: Top 5 de cada categoría
+        categorias_preview = []
+        for cat in categorias:
+            prods = Productos.objects.filter(categoria=cat)[:5]
+            if prods.exists():
+                categorias_preview.append({
+                    'categoria': cat,
+                    'productos': prods
+                })
+        context['categorias_preview'] = categorias_preview
+        context['modo_busqueda'] = False
+
+    return render(request, 'productos.html', context)
 
 from .forms import ClienteForm
 
