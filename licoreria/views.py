@@ -4,7 +4,49 @@ from .models import Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, E
 
 from django.db.models import Sum
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
+# --- Vistas de Autenticación y Registro ---
+
+def validar_registro(request):
+    """
+    Vista 'Gatekeeper' que pide contraseña de admin para permitir registrar un nuevo empleado.
+    """
+    if request.method == 'POST':
+        clave = request.POST.get('admin_pass')
+        if clave == 'axfer2304':
+            # Contraseña correcta: Marcamos la sesión y redirigimos
+            request.session['can_register'] = True
+            return redirect('registro_empleado')
+        else:
+            return render(request, 'registration/validate_admin.html', {'error': 'Contraseña incorrecta'})
+    
+    return render(request, 'registration/validate_admin.html')
+
+def registro_empleado(request):
+    """
+    Formulario de creación de usuario. Solo accesible si se pasó la validación.
+    """
+    if not request.session.get('can_register'):
+        return redirect('validar_registro')
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # Limpiamos el permiso de la sesión
+            if 'can_register' in request.session:
+                del request.session['can_register']
+            messages.success(request, 'Empleado registrado exitosamente. Ahora puede iniciar sesión.')
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'registration/register.html', {'form': form})
+
+@login_required
 def index(request):
     # Obtener fecha de hoy
     hoy = timezone.now().date()
@@ -35,6 +77,7 @@ def index(request):
     }
     return render(request, 'index.html', context)
 
+@login_required
 def productos(request):
     # Definir qué es un Snack para excluirlo
     nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
@@ -70,7 +113,6 @@ def productos(request):
         productos_list = Productos.objects.filter(categoria_id=categoria_id)
         context['productos_globales'] = productos_list
         context['modo_busqueda'] = True 
-
     else:
         # Modo Exploración: Top 5 de cada categoría
         categorias_preview = []
@@ -86,6 +128,7 @@ def productos(request):
 
     return render(request, 'productos.html', context)
 
+@login_required
 def snacks(request):
     # Categorías consideradas Snacks
     nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
@@ -135,6 +178,7 @@ def snacks(request):
 
 from .forms import ClienteForm, EmpleadoForm
 
+@login_required
 def clientes(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
@@ -150,6 +194,7 @@ def clientes(request):
         'form': form
     })
 
+@login_required
 def empleados(request):
     if request.method == 'POST':
         form = EmpleadoForm(request.POST)
@@ -165,16 +210,19 @@ def empleados(request):
         'form': form
     })
 
+@login_required
 def distribuidores(request):
     distribuidores_list = Distribuidores.objects.all()
     return render(request, 'distribuidores.html', {'distribuidores': distribuidores_list})
 
+@login_required
 def gastos(request):
     gastos_list = Gastos.objects.all()
     return render(request, 'gastos.html', {'gastos': gastos_list})
 
 from .forms import ClienteForm, EmpleadoForm, PrestamoForm
 
+@login_required
 def prestamos(request):
     if request.method == 'POST':
         form = PrestamoForm(request.POST)
@@ -190,10 +238,12 @@ def prestamos(request):
         'form': form
     })
 
+@login_required
 def ordenes(request):
     ordenes_list = Ordenes.objects.all().order_by('-fecha')
     return render(request, 'ordenes.html', {'ordenes': ordenes_list})
 
+@login_required
 def detalle_orden(request, orden_id):
     from django.shortcuts import get_object_or_404
     orden = get_object_or_404(Ordenes, id=orden_id)
@@ -202,6 +252,7 @@ def detalle_orden(request, orden_id):
 
 from django.http import JsonResponse
 
+@login_required
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
@@ -229,6 +280,7 @@ def agregar_carrito(request, producto_id):
     
     return redirect('productos')
 
+@login_required
 def ver_carrito(request):
     carrito = request.session.get('cart', {})
     items_carrito = []
@@ -248,6 +300,7 @@ def ver_carrito(request):
     
     return render(request, 'carrito.html', {'items': items_carrito, 'total': total})
 
+@login_required
 def eliminar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
@@ -258,6 +311,7 @@ def eliminar_carrito(request, producto_id):
         
     return redirect('ver_carrito')
 
+@login_required
 def checkout_whatsapp(request):
     carrito = request.session.get('cart', {})
     if not carrito:

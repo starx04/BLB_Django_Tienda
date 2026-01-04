@@ -121,52 +121,60 @@ display: block;
     </div>
 </div>
 
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-data-data" }}
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const ctx = document.getElementById('salesChart').getContext('2d');
+
+        // Parse data from Django json_script tags
+        const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+        const chartData = JSON.parse(document.getElementById('chart-data-data').textContent);
+
         const salesChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {{ chart_labels| safe }},
-        datasets: [{
-            label: 'Ventas ($)',
-            data: {{ chart_data| safe }},
-        borderColor: '#8b5cf6',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        borderWidth: 2,
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: '#8b5cf6'
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: chartData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#8b5cf6'
                 }]
             },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.05)'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 },
-                ticks: {
-                    color: '#94a3b8'
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: '#94a3b8'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
                 }
             }
-        }
-    }
         });
     });
 </script>

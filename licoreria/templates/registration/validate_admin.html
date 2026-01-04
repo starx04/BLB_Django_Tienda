@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Autorización Requerida{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 400px; margin: 4rem auto; padding: 2rem; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; color: var(--danger, #ef4444); margin-bottom: 1rem;">
+            <i class="ph ph-shield-warning"></i>
+        </div>
+        <h2 style="margin: 0;">Acceso Restringido</h2>
+        <p style="color: var(--text-secondary);">Ingresa la clave de administrador para registrar un nuevo empleado.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% if error %}
+        <div
+            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.75rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
+            <i class="ph ph-warning-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Clave de Admin</label>
+            <div style="position: relative;">
+                <input type="password" name="admin_pass" class="form-control" required autofocus
+                    style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                <i class="ph ph-key"
+                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+            </div>
+        </div>
+
+        <button type="submit"
+            style="width: 100%; padding: 1rem; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+            Validar
+        </button>
+
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="{% url 'login' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
