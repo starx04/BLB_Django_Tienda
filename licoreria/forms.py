@@ -29,3 +29,18 @@ class ClienteForm(forms.ModelForm):
         if Clientes.objects.filter(email=email).exists():
             raise forms.ValidationError("Este correo ya está registrado.")
         return email
+
+from .models import Empleados
+
+class EmpleadoForm(forms.ModelForm):
+    class Meta:
+        model = Empleados
+        fields = ['nombre', 'cargo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre Completo'}),
+            'cargo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cargo (ej. Vendedor)'}),
+        }
+        labels = {
+            'nombre': 'Nombre del Empleado',
+            'cargo': 'Cargo',
+        }

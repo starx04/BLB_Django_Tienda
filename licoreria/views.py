@@ -133,7 +133,7 @@ def snacks(request):
 
     return render(request, 'snacks.html', context)
 
-from .forms import ClienteForm
+from .forms import ClienteForm, EmpleadoForm
 
 def clientes(request):
     if request.method == 'POST':
@@ -151,8 +151,19 @@ def clientes(request):
     })
 
 def empleados(request):
+    if request.method == 'POST':
+        form = EmpleadoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('empleados')
+    else:
+        form = EmpleadoForm()
+
     empleados_list = Empleados.objects.all()
-    return render(request, 'empleados.html', {'empleados': empleados_list})
+    return render(request, 'empleados.html', {
+        'empleados': empleados_list,
+        'form': form
+    })
 
 def distribuidores(request):
     distribuidores_list = Distribuidores.objects.all()
