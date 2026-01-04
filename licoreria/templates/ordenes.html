@@ -11,21 +11,24 @@
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Vendedor</th>
+            <th>Código de Orden</th>
             <th>Fecha</th>
             <th>Total</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
         {% for orden in ordenes %}
         <tr>
-            <td>#{{ orden.id }}</td>
-            <td>{{ orden.cliente.nombre }}</td>
-            <td>{{ orden.empleado.nombre|default:"Online/Sin Vendedor" }}</td>
-            <td>{{ orden.fecha|date:"d M Y H:i" }}</td>
+            <td><strong>#{{ orden.id }}</strong></td>
+            <td>{{ orden.fecha|date:"d M Y - H:i" }}</td>
             <td style="color: var(--price-color); font-weight: bold;">${{ orden.total }}</td>
+            <td>
+                <a href="{% url 'detalle_orden' orden.id %}" class="btn btn-primary"
+                    style="padding: 6px 12px; font-size: 0.9rem;">
+                    <i class="ph ph-eye"></i> Ver Detalles
+                </a>
+            </td>
         </tr>
         {% empty %}
         <tr>

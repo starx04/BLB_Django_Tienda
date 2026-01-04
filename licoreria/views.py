@@ -173,21 +173,32 @@ def gastos(request):
     gastos_list = Gastos.objects.all()
     return render(request, 'gastos.html', {'gastos': gastos_list})
 
+from .forms import ClienteForm, EmpleadoForm, PrestamoForm
+
 def prestamos(request):
-    prestamos_list = Prestamos.objects.all()
-    return render(request, 'prestamos.html', {'prestamos': prestamos_list})
+    if request.method == 'POST':
+        form = PrestamoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('prestamos')
+    else:
+        form = PrestamoForm()
+
+    prestamos_list = Prestamos.objects.all().order_by('-fecha_prestamo')
+    return render(request, 'prestamos.html', {
+        'prestamos': prestamos_list,
+        'form': form
+    })
 
 def ordenes(request):
-    ordenes_list = Ordenes.objects.all()
+    ordenes_list = Ordenes.objects.all().order_by('-fecha')
     return render(request, 'ordenes.html', {'ordenes': ordenes_list})
 
-def categorias(request):
-    categorias_list = Categorias.objects.all()
-    return render(request, 'categorias.html', {'categorias': categorias_list})
-
-def detalles_ordenes(request):
-    detalles = DetallesOrdenes.objects.all()
-    return render(request, 'detalles_ordenes.html', {'detalles': detalles})
+def detalle_orden(request, orden_id):
+    from django.shortcuts import get_object_or_404
+    orden = get_object_or_404(Ordenes, id=orden_id)
+    detalles = DetallesOrdenes.objects.filter(orden=orden)
+    return render(request, 'detalles_ordenes.html', {'orden': orden, 'detalles': detalles})
 
 from django.http import JsonResponse
 

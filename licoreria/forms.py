@@ -44,3 +44,22 @@ class EmpleadoForm(forms.ModelForm):
             'nombre': 'Nombre del Empleado',
             'cargo': 'Cargo',
         }
+
+from .models import Prestamos
+
+class PrestamoForm(forms.ModelForm):
+    class Meta:
+        model = Prestamos
+        fields = ['cliente', 'descripcion', 'valor', 'devuelto']
+        widgets = {
+            'cliente': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción del préstamo...'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
+            'devuelto': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+        }
+        labels = {
+            'cliente': 'Cliente',
+            'descripcion': 'Detalle / Descripción',
+            'valor': 'Valor ($)',
+            'devuelto': '¿Ya fue devuelto?'
+        }
