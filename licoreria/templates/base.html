@@ -278,7 +278,13 @@
             <li class="nav-item">
                 <a href="{% url 'productos' %}"
                     class="{% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
-                    <i class="ph ph-bottle"></i> Catálogo
+                    <i class="ph ph-bottle"></i> Licores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'snacks' %}"
+                    class="{% if request.resolver_match.url_name == 'snacks' %}active{% endif %}">
+                    <i class="ph ph-cookie"></i> Snacks
                 </a>
             </li>
             <li class="nav-item">

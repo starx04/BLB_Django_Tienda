@@ -24,8 +24,12 @@ def index(request):
     return render(request, 'index.html', context)
 
 def productos(request):
-    categorias = Categorias.objects.all()
-
+    # Definir qué es un Snack para excluirlo
+    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+    
+    # Filtrar solo categorías que NO son snacks (es decir, Licores/Bebidas)
+    categorias = Categorias.objects.exclude(nombre__in=nombres_snacks)
+    
     # Filtros
     categoria_id = request.GET.get('categoria')
     busqueda = request.GET.get('busqueda')
@@ -33,12 +37,16 @@ def productos(request):
     context = {
         'categorias': categorias,
         'busqueda': busqueda,
-        'categoria_id': categoria_id
+        'categoria_id': categoria_id,
+        'page_title': 'Catálogo de Licores'
     }
 
     if busqueda:
-        # Búsqueda global (ignora agrupación)
-        productos_list = Productos.objects.filter(Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda))
+        # Búsqueda global (filtrando solo licores)
+        productos_list = Productos.objects.filter(
+            Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda)
+        ).exclude(categoria__nombre__in=nombres_snacks)
+        
         if categoria_id:
             productos_list = productos_list.filter(categoria_id=categoria_id)
         
@@ -46,10 +54,10 @@ def productos(request):
         context['modo_busqueda'] = True
 
     elif categoria_id:
-        # Filtro específico de categoría (mostrar todos de esa categoría)
+        # Filtro específico de categoría
         productos_list = Productos.objects.filter(categoria_id=categoria_id)
         context['productos_globales'] = productos_list
-        context['modo_busqueda'] = True # Usamos el mismo layout de grilla completa
+        context['modo_busqueda'] = True 
 
     else:
         # Modo Exploración: Top 5 de cada categoría
@@ -65,6 +73,53 @@ def productos(request):
         context['modo_busqueda'] = False
 
     return render(request, 'productos.html', context)
+
+def snacks(request):
+    # Categorías consideradas Snacks
+    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+    
+    categorias = Categorias.objects.filter(nombre__in=nombres_snacks)
+    
+    # Filtros
+    categoria_id = request.GET.get('categoria')
+    busqueda = request.GET.get('busqueda')
+    
+    context = {
+        'categorias': categorias,
+        'busqueda': busqueda,
+        'categoria_id': categoria_id,
+        'page_title': 'Catálogo de Snacks'
+    }
+
+    if busqueda:
+        productos_list = Productos.objects.filter(
+            Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda)
+        ).filter(categoria__nombre__in=nombres_snacks)
+        
+        if categoria_id:
+            productos_list = productos_list.filter(categoria_id=categoria_id)
+        
+        context['productos_globales'] = productos_list
+        context['modo_busqueda'] = True
+
+    elif categoria_id:
+        productos_list = Productos.objects.filter(categoria_id=categoria_id)
+        context['productos_globales'] = productos_list
+        context['modo_busqueda'] = True
+
+    else:
+        categorias_preview = []
+        for cat in categorias:
+            prods = Productos.objects.filter(categoria=cat)[:5]
+            if prods.exists():
+                categorias_preview.append({
+                    'categoria': cat,
+                    'productos': prods
+                })
+        context['categorias_preview'] = categorias_preview
+        context['modo_busqueda'] = False
+
+    return render(request, 'snacks.html', context)
 
 from .forms import ClienteForm
 
