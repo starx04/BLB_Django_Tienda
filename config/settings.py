@@ -121,3 +121,7 @@ STATIC_URL = 'static/'
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Business Settings
+WHATSAPP_NUMBER = "593999999999" # Cambiar por el número real
+

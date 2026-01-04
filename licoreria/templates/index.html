@@ -113,6 +113,64 @@ display: block;
     </div>
 </div>
 
+<div
+    style="background: var(--bg-sidebar); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border);">
+    <h3 style="margin: 0 0 1.5rem 0; font-size: 1.1rem; font-weight: 600;">Historial de Ventas (Últimos 7 días)</h3>
+    <div style="height: 300px; width: 100%;">
+        <canvas id="salesChart"></canvas>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels| safe }},
+        datasets: [{
+            label: 'Ventas ($)',
+            data: {{ chart_data| safe }},
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#8b5cf6'
+                }]
+            },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)'
+                },
+                ticks: {
+                    color: '#94a3b8'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#94a3b8'
+                }
+            }
+        }
+    }
+        });
+    });
+</script>
+
 <h3 style="margin-bottom: 1.5rem; font-weight: 600;">Accesos Rápidos</h3>
 <div class="quick-actions-grid">
     <a href="{% url 'productos' %}" class="action-card">

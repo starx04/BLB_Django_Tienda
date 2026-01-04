@@ -15,11 +15,23 @@ def index(request):
     clientes_activos = Clientes.objects.count()
     productos_stock = Productos.objects.aggregate(Sum('stock'))['stock__sum'] or 0
 
+    # Datos para la Gráfica (Últimos 7 días)
+    chart_labels = []
+    chart_data = []
+    
+    for i in range(6, -1, -1):
+        fecha = hoy - timezone.timedelta(days=i)
+        chart_labels.append(fecha.strftime("%d/%m"))
+        venta_dia = Ordenes.objects.filter(fecha__date=fecha).aggregate(Sum('total'))['total__sum'] or 0
+        chart_data.append(float(venta_dia))
+
     context = {
         'ventas_hoy': ventas_hoy,
         'pedidos_nuevos': pedidos_nuevos,
         'clientes_activos': clientes_activos,
-        'productos_stock': productos_stock
+        'productos_stock': productos_stock,
+        'chart_labels': chart_labels,
+        'chart_data': chart_data
     }
     return render(request, 'index.html', context)
 
@@ -172,6 +184,16 @@ def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
     
+    # Validar Stock
+    producto = Productos.objects.get(id=producto_id)
+    cantidad_actual = carrito.get(prod_id_str, 0)
+    
+    if cantidad_actual + 1 > producto.stock:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+             return JsonResponse({'message': 'Sin stock suficiente', 'error': True}, status=400)
+        # Si no es AJAX, podrías mostrar un mensaje flash (pero por ahora redirigimos)
+        return redirect('productos')
+
     if prod_id_str in carrito:
         carrito[prod_id_str] += 1
     else:
@@ -182,7 +204,7 @@ def agregar_carrito(request, producto_id):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
          total_items = sum(carrito.values())
          return JsonResponse({'message': 'Agregado', 'cart_count': total_items})
-
+    
     return redirect('productos')
 
 def ver_carrito(request):
@@ -232,8 +254,9 @@ def checkout_whatsapp(request):
     
     mensaje += f"%0ATotal a pagar: ${total}"
     
-    # Redirigir a WhatsApp (número ficticio, cambiar por real)
-    numero_whatsapp = "593999999999" 
+    # Redirigir a WhatsApp
+    from django.conf import settings
+    numero_whatsapp = getattr(settings, 'WHATSAPP_NUMBER', "593999999999")
     url = f"https://wa.me/{numero_whatsapp}?text={mensaje}"
     
     # Opcional: Limpiar carrito después de ordenar

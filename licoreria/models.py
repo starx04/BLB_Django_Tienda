@@ -30,6 +30,29 @@ class Productos(models.Model):
     ingredientes = models.TextField(blank=True, null=True, help_text="Lista de ingredientes (para snacks)")
     id_externo_api = models.CharField(max_length=100, blank=True, null=True, help_text="ID referencia en API externa")
 
+    def save(self, *args, **kwargs):
+        # Auto-fetch image for Snacks from Open Food Facts if missing and barcode exists
+        if self.codigo_barras and not self.url_imagen_externa and not self.imagen:
+            try:
+                # Comprobar si es un snack o comida
+                is_snack = self.categoria and self.categoria.nombre in ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+                
+                if is_snack:
+                    import requests
+                    url = "https://world.openfoodfacts.org/api/v0/product/{}.json".format(self.codigo_barras)
+                    response = requests.get(url, timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('status') == 1:
+                            product_data = data.get('product', {})
+                            image_url = product_data.get('image_front_url')
+                            if image_url:
+                                self.url_imagen_externa = image_url
+            except Exception as e:
+                print(f"Error fetching image for {self.nombre}: {e}")
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.nombre
 
