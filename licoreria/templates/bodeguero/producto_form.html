@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block header_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 800px; margin: 0 auto; background: var(--bg-sidebar); padding: 2.5rem; border-radius: 20px; border: 1px solid var(--border);">
+    <h2 style="margin-top: 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+        {{ titulo }}
+    </h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            {% for field in form %}
+            <div class="form-group" style="{% if field.name == 'descripcion' %}grid-column: span 2;{% endif %}">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{
+                    field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div style="color: var(--danger); font-size: 0.8rem; margin-top: 5px;">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div
+            style="margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+            <a href="{% url 'gestion_productos' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary" style="padding: 10px 30px;">
+                Guardar Producto
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

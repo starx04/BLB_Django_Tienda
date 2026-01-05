@@ -161,3 +161,33 @@ class Gastos(models.Model):
 
     def __str__(self):
         return f"{self.descripcion} - ${self.monto}"
+
+class Recompensas(models.Model):
+    """Modelo para gestionar recompensas y regalos por consumo del cliente"""
+    TIPO_RECOMPENSA = [
+        ('PUN', 'Puntos'),
+        ('DES', 'Descuento'),
+        ('REG', 'Regalo/Producto Gratis'),
+        ('BON', 'Bono Especial'),
+    ]
+    
+    cliente = models.ForeignKey(Clientes, on_delete=models.CASCADE, related_name='recompensas')
+    tipo = models.CharField(max_length=3, choices=TIPO_RECOMPENSA, default='PUN', verbose_name="Tipo de Recompensa")
+    descripcion = models.TextField(help_text="Descripción de la recompensa otorgada")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, help_text="Valor monetario o puntos")
+    fecha_otorgada = models.DateTimeField(auto_now_add=True)
+    fecha_vencimiento = models.DateField(null=True, blank=True, help_text="Fecha límite para usar la recompensa")
+    utilizada = models.BooleanField(default=False)
+    fecha_utilizacion = models.DateTimeField(null=True, blank=True)
+    orden_relacionada = models.ForeignKey(Ordenes, on_delete=models.SET_NULL, null=True, blank=True, 
+                                         help_text="Orden que generó esta recompensa")
+    
+    class Meta:
+        verbose_name = "Recompensa"
+        verbose_name_plural = "Recompensas"
+        ordering = ['-fecha_otorgada']
+    
+    def __str__(self):
+        estado = "Utilizada" if self.utilizada else "Disponible"
+        return f"{self.cliente.nombre} - {self.get_tipo_display()} - {estado}"
+

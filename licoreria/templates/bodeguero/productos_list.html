@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Gestión de Inventario{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2 style="margin: 0;">Catálogo de Productos</h2>
+        <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Bodeguero: Control total de stock y precios</p>
+    </div>
+    <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+        <i class="ph ph-plus-circle"></i> Nuevo Producto
+    </a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Imagen</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}"
+                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                <div
+                    style="width: 50px; height: 50px; background: #334155; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="ph ph-image-square" style="color: #94a3b8;"></i>
+                </div>
+                {% endif %}
+            </td>
+            <td><strong style="color: white;">{{ producto.nombre }}</strong><br><small
+                    style="color: var(--text-secondary);">{{ producto.marca }}</small></td>
+            <td><span class="tag">{{ producto.categoria }}</span></td>
+            <td style="color: var(--success); font-weight: bold;">${{ producto.precio }}</td>
+            <td>
+                {% if producto.stock < 10 %} <span style="color: var(--danger); font-weight: bold;">{{ producto.stock }}
+                    (Bajo)</span>
+                    {% else %}
+                    <span style="color: var(--text-primary);">{{ producto.stock }}</span>
+                    {% endif %}
+            </td>
+            <td>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'producto_editar' producto.id %}" class="btn btn-secondary"
+                        style="padding: 6px 12px; font-size: 0.85rem;">
+                        <i class="ph ph-pencil-simple"></i>
+                    </a>
+                    <a href="{% url 'producto_eliminar' producto.id %}" class="btn btn-danger"
+                        style="padding: 6px 12px; font-size: 0.85rem;">
+                        <i class="ph ph-trash"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                No hay productos registrados. Comienza agregando uno nuevo.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

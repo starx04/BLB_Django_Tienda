@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Mis Compras{% endblock %}
+
+{% block content %}
+<div style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border);">
+    <h2 style="margin-top: 0; margin-bottom: 2rem;"><i class="ph ph-shopping-bag" style="color: var(--accent);"></i>
+        Historial de mis Pedidos</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código de Orden</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for orden in compras %}
+            <tr>
+                <td><strong>#{{ orden.id }}</strong></td>
+                <td>{{ orden.fecha|date:"d M Y - H:i" }}</td>
+                <td style="color: var(--success); font-weight: bold;">${{ orden.total }}</td>
+                <td><span
+                        style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Completado</span>
+                </td>
+                <td>
+                    <a href="{% url 'detalle_orden' orden.id %}" class="btn btn-secondary"
+                        style="padding: 6px 12px; font-size: 0.9rem;">
+                        Ver Detalle
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #64748b; padding: 4rem;">
+                    Aún no has realizado ninguna compra.
+                    <br><br>
+                    <a href="{% url 'productos' %}" class="btn btn-primary">¡Ir a la Tienda!</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

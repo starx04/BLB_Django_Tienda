@@ -1,66 +1,64 @@
-from django.shortcuts import render, redirect
-from django.db.models import Q
-from .models import Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, Empleados, Distribuidores, Gastos, Prestamos
-
-from django.db.models import Sum
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User, Group
 from django.contrib import messages
+from django.http import JsonResponse
+from django.conf import settings
 
-# --- Vistas de Autenticación y Registro ---
+from .models import (Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, 
+                     Empleados, Distribuidores, Gastos, Prestamos, Recompensas)
+from .forms import (ClienteForm, EmpleadoForm, PrestamoForm, RegistroClienteForm, 
+                    ProductoForm, RecompensaForm)
+from .decorators import (rol_requerido, administrador_required, bodeguero_required, 
+                        supervisor_required, cliente_required)
 
-def validar_registro(request):
-    """
-    Vista 'Gatekeeper' que pide contraseña de admin para permitir registrar un nuevo empleado.
-    """
+# --- Vistas Públicas ---
+
+def registro_cliente(request):
+    """Permite que cualquier persona se registre como Cliente"""
     if request.method == 'POST':
-        clave = request.POST.get('admin_pass')
-        if clave == 'axfer2304':
-            # Contraseña correcta: Marcamos la sesión y redirigimos
-            request.session['can_register'] = True
-            return redirect('registro_empleado')
-        else:
-            return render(request, 'registration/validate_admin.html', {'error': 'Contraseña incorrecta'})
-    
-    return render(request, 'registration/validate_admin.html')
-
-def registro_empleado(request):
-    """
-    Formulario de creación de usuario. Solo accesible si se pasó la validación.
-    """
-    if not request.session.get('can_register'):
-        return redirect('validar_registro')
-
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistroClienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            # Limpiamos el permiso de la sesión
-            if 'can_register' in request.session:
-                del request.session['can_register']
-            messages.success(request, 'Empleado registrado exitosamente. Ahora puede iniciar sesión.')
+            # 1. Crear el usuario de Django
+            user = User.objects.create_user(
+                username=form.cleaned_data['email'],
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password'],
+                first_name=form.cleaned_data['nombre']
+            )
+            # 2. Asignar al grupo Cliente
+            grupo_cliente, _ = Group.objects.get_or_create(name='Cliente')
+            user.groups.add(grupo_cliente)
+            
+            # 3. Crear el perfil en el modelo Clientes
+            cliente_perfil = form.save()
+            
+            messages.success(request, 'Registro exitoso. Ya puedes iniciar sesión.')
             return redirect('login')
     else:
-        form = UserCreationForm()
+        form = RegistroClienteForm()
+    return render(request, 'registration/register_cliente.html', {'form': form})
 
-    return render(request, 'registration/register.html', {'form': form})
+# --- Dashboard General ---
 
 @login_required
 def index(request):
-    # Obtener fecha de hoy
     hoy = timezone.now().date()
     
-    # Estadísticas Reales
+    # Si es cliente, redirigir a su vista específica o mostrar dashboard limitado
+    if request.user.groups.filter(name='Cliente').exists():
+        return redirect('mis_compras')
+
+    # Estadísticas para Empleados/Admin
     ventas_hoy = Ordenes.objects.filter(fecha__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
     pedidos_nuevos = Ordenes.objects.filter(fecha__date=hoy).count()
     clientes_activos = Clientes.objects.count()
     productos_stock = Productos.objects.aggregate(Sum('stock'))['stock__sum'] or 0
 
-    # Datos para la Gráfica (Últimos 7 días)
     chart_labels = []
     chart_data = []
-    
     for i in range(6, -1, -1):
         fecha = hoy - timezone.timedelta(days=i)
         chart_labels.append(fecha.strftime("%d/%m"))
@@ -77,270 +75,253 @@ def index(request):
     }
     return render(request, 'index.html', context)
 
-@login_required
-def productos(request):
-    # Definir qué es un Snack para excluirlo
-    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
-    
-    # Filtrar solo categorías que NO son snacks (es decir, Licores/Bebidas)
-    categorias = Categorias.objects.exclude(nombre__in=nombres_snacks)
-    
-    # Filtros
-    categoria_id = request.GET.get('categoria')
-    busqueda = request.GET.get('busqueda')
-    
-    context = {
-        'categorias': categorias,
-        'busqueda': busqueda,
-        'categoria_id': categoria_id,
-        'page_title': 'Catálogo de Licores'
-    }
-
-    if busqueda:
-        # Búsqueda global (filtrando solo licores)
-        productos_list = Productos.objects.filter(
-            Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda)
-        ).exclude(categoria__nombre__in=nombres_snacks)
-        
-        if categoria_id:
-            productos_list = productos_list.filter(categoria_id=categoria_id)
-        
-        context['productos_globales'] = productos_list
-        context['modo_busqueda'] = True
-
-    elif categoria_id:
-        # Filtro específico de categoría
-        productos_list = Productos.objects.filter(categoria_id=categoria_id)
-        context['productos_globales'] = productos_list
-        context['modo_busqueda'] = True 
-    else:
-        # Modo Exploración: Top 5 de cada categoría
-        categorias_preview = []
-        for cat in categorias:
-            prods = Productos.objects.filter(categoria=cat)[:5]
-            if prods.exists():
-                categorias_preview.append({
-                    'categoria': cat,
-                    'productos': prods
-                })
-        context['categorias_preview'] = categorias_preview
-        context['modo_busqueda'] = False
-
-    return render(request, 'productos.html', context)
+# --- Funciones de Bodeguero (Productos) ---
 
 @login_required
-def snacks(request):
-    # Categorías consideradas Snacks
-    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
-    
-    categorias = Categorias.objects.filter(nombre__in=nombres_snacks)
-    
-    # Filtros
-    categoria_id = request.GET.get('categoria')
-    busqueda = request.GET.get('busqueda')
-    
-    context = {
-        'categorias': categorias,
-        'busqueda': busqueda,
-        'categoria_id': categoria_id,
-        'page_title': 'Catálogo de Snacks'
-    }
-
-    if busqueda:
-        productos_list = Productos.objects.filter(
-            Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda) | Q(codigo_barras__icontains=busqueda)
-        ).filter(categoria__nombre__in=nombres_snacks)
-        
-        if categoria_id:
-            productos_list = productos_list.filter(categoria_id=categoria_id)
-        
-        context['productos_globales'] = productos_list
-        context['modo_busqueda'] = True
-
-    elif categoria_id:
-        productos_list = Productos.objects.filter(categoria_id=categoria_id)
-        context['productos_globales'] = productos_list
-        context['modo_busqueda'] = True
-
-    else:
-        categorias_preview = []
-        for cat in categorias:
-            prods = Productos.objects.filter(categoria=cat)[:5]
-            if prods.exists():
-                categorias_preview.append({
-                    'categoria': cat,
-                    'productos': prods
-                })
-        context['categorias_preview'] = categorias_preview
-        context['modo_busqueda'] = False
-
-    return render(request, 'snacks.html', context)
-
-from .forms import ClienteForm, EmpleadoForm
+@rol_requerido('Bodeguero', 'Administrador')
+def gestion_productos(request):
+    productos_list = Productos.objects.all().order_by('nombre')
+    return render(request, 'bodeguero/productos_list.html', {'productos': productos_list})
 
 @login_required
-def clientes(request):
+@rol_requerido('Bodeguero', 'Administrador')
+def producto_crear(request):
     if request.method == 'POST':
-        form = ClienteForm(request.POST)
+        form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('clientes')
+            messages.success(request, 'Producto creado exitosamente.')
+            return redirect('gestion_productos')
     else:
-        form = ClienteForm()
-
-    clientes_list = Clientes.objects.all().order_by('-id')
-    return render(request, 'clientes.html', {
-        'clientes': clientes_list,
-        'form': form
-    })
+        form = ProductoForm()
+    return render(request, 'bodeguero/producto_form.html', {'form': form, 'titulo': 'Crear Producto'})
 
 @login_required
-def empleados(request):
+@rol_requerido('Bodeguero', 'Administrador')
+def producto_editar(request, pk):
+    producto = get_object_or_404(Productos, pk=pk)
     if request.method == 'POST':
-        form = EmpleadoForm(request.POST)
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
             form.save()
-            return redirect('empleados')
+            messages.success(request, 'Producto actualizado.')
+            return redirect('gestion_productos')
     else:
-        form = EmpleadoForm()
-
-    empleados_list = Empleados.objects.all()
-    return render(request, 'empleados.html', {
-        'empleados': empleados_list,
-        'form': form
-    })
+        form = ProductoForm(instance=producto)
+    return render(request, 'bodeguero/producto_form.html', {'form': form, 'titulo': 'Editar Producto'})
 
 @login_required
-def distribuidores(request):
-    distribuidores_list = Distribuidores.objects.all()
-    return render(request, 'distribuidores.html', {'distribuidores': distribuidores_list})
+@rol_requerido('Bodeguero', 'Administrador')
+def producto_eliminar(request, pk):
+    producto = get_object_or_404(Productos, pk=pk)
+    if request.method == 'POST':
+        producto.delete()
+        messages.success(request, 'Producto eliminado.')
+        return redirect('gestion_productos')
+    return render(request, 'bodeguero/producto_confirm_delete.html', {'producto': producto})
+
+# --- Funciones de Supervisor (Préstamos y Recompensas) ---
 
 @login_required
-def gastos(request):
-    gastos_list = Gastos.objects.all()
-    return render(request, 'gastos.html', {'gastos': gastos_list})
-
-from .forms import ClienteForm, EmpleadoForm, PrestamoForm
-
-@login_required
-def prestamos(request):
+@rol_requerido('Supervisor', 'Administrador')
+def gestion_prestamos(request):
     if request.method == 'POST':
         form = PrestamoForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('prestamos')
+            messages.success(request, 'Préstamo registrado.')
+            return redirect('gestion_prestamos')
     else:
         form = PrestamoForm()
-
     prestamos_list = Prestamos.objects.all().order_by('-fecha_prestamo')
-    return render(request, 'prestamos.html', {
-        'prestamos': prestamos_list,
-        'form': form
+    return render(request, 'supervisor/prestamos.html', {'prestamos': prestamos_list, 'form': form})
+
+@login_required
+@rol_requerido('Supervisor', 'Administrador')
+def gestion_recompensas(request):
+    if request.method == 'POST':
+        form = RecompensaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Recompensa otorgada.')
+            return redirect('gestion_recompensas')
+    else:
+        form = RecompensaForm()
+    recompensas_list = Recompensas.objects.all().order_by('-fecha_otorgada')
+    return render(request, 'supervisor/recompensas.html', {'recompensas': recompensas_list, 'form': form})
+
+# --- Funciones de Cliente (Mis Compras y Préstamos) ---
+
+@login_required
+@cliente_required
+def mis_compras(request):
+    # Buscar el perfil de cliente asociado al usuario actual por email
+    try:
+        cliente_perfil = Clientes.objects.get(email=request.user.email)
+        compras = Ordenes.objects.filter(cliente=cliente_perfil).order_by('-fecha')
+    except Clientes.DoesNotExist:
+        compras = []
+    return render(request, 'cliente/mis_compras.html', {'compras': compras})
+
+@login_required
+@cliente_required
+def mis_prestamos(request):
+    try:
+        cliente_perfil = Clientes.objects.get(email=request.user.email)
+        prestamos = Prestamos.objects.filter(cliente=cliente_perfil).order_by('-fecha_prestamo')
+    except Clientes.DoesNotExist:
+        prestamos = []
+    return render(request, 'cliente/mis_prestamos.html', {'prestamos': prestamos})
+
+# --- Gestión de Empleados (Solo Administrador) ---
+
+@login_required
+@administrador_required
+def registro_empleado(request):
+    """Solo el administrador puede crear Bodegueros y Supervisores"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        passw = request.POST.get('password')
+        rol = request.POST.get('rol') # 'Bodeguero' o 'Supervisor'
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'El usuario ya existe.')
+        else:
+            user = User.objects.create_user(username=username, email=email, password=passw)
+            user.is_staff = True
+            grupo = Group.objects.get(name=rol)
+            user.groups.add(grupo)
+            user.save()
+            
+            # Crear perfil de empleado
+            Empleados.objects.create(nombre=username, cargo=rol, sueldo=0)
+            
+            messages.success(request, f'Empleado {username} creado como {rol}.')
+            return redirect('index')
+            
+    return render(request, 'admin/crear_empleado.html')
+
+# --- Catálogo y Carrito (Acceso General para comprar) ---
+
+@login_required
+def productos_catalogo(request):
+    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+    categorias = Categorias.objects.exclude(nombre__in=nombres_snacks)
+    
+    categoria_id = request.GET.get('categoria')
+    busqueda = request.GET.get('busqueda')
+    
+    productos_list = Productos.objects.exclude(categoria__nombre__in=nombres_snacks)
+    if busqueda:
+        productos_list = productos_list.filter(Q(nombre__icontains=busqueda) | Q(marca__nombre__icontains=busqueda))
+    if categoria_id:
+        productos_list = productos_list.filter(categoria_id=categoria_id)
+        
+    return render(request, 'productos.html', {
+        'categorias': categorias,
+        'productos_globales': productos_list,
+        'modo_busqueda': True if (busqueda or categoria_id) else False
     })
 
 @login_required
-def ordenes(request):
-    ordenes_list = Ordenes.objects.all().order_by('-fecha')
-    return render(request, 'ordenes.html', {'ordenes': ordenes_list})
-
-@login_required
-def detalle_orden(request, orden_id):
-    from django.shortcuts import get_object_or_404
-    orden = get_object_or_404(Ordenes, id=orden_id)
-    detalles = DetallesOrdenes.objects.filter(orden=orden)
-    return render(request, 'detalles_ordenes.html', {'orden': orden, 'detalles': detalles})
-
-from django.http import JsonResponse
+def snacks_catalogo(request):
+    nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+    productos_list = Productos.objects.filter(categoria__nombre__in=nombres_snacks)
+    return render(request, 'snacks.html', {'productos_globales': productos_list})
 
 @login_required
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
+    producto = get_object_or_404(Productos, id=producto_id)
     
-    # Validar Stock
-    producto = Productos.objects.get(id=producto_id)
     cantidad_actual = carrito.get(prod_id_str, 0)
-    
     if cantidad_actual + 1 > producto.stock:
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-             return JsonResponse({'message': 'Sin stock suficiente', 'error': True}, status=400)
-        # Si no es AJAX, podrías mostrar un mensaje flash (pero por ahora redirigimos)
-        return redirect('productos')
+         return JsonResponse({'message': 'Sin stock suficiente', 'error': True}, status=400)
 
-    if prod_id_str in carrito:
-        carrito[prod_id_str] += 1
-    else:
-        carrito[prod_id_str] = 1
-    
+    carrito[prod_id_str] = cantidad_actual + 1
     request.session['cart'] = carrito
     
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-         total_items = sum(carrito.values())
-         return JsonResponse({'message': 'Agregado', 'cart_count': total_items})
-    
-    return redirect('productos')
+    total_items = sum(carrito.values())
+    return JsonResponse({'message': 'Agregado', 'cart_count': total_items})
 
 @login_required
 def ver_carrito(request):
     carrito = request.session.get('cart', {})
     items_carrito = []
     total = 0
-    
-    productos_db = Productos.objects.filter(id__in=carrito.keys())
-    
-    for producto in productos_db:
-        cantidad = carrito[str(producto.id)]
-        subtotal = producto.precio * cantidad
+    for p_id, cant in carrito.items():
+        prod = Productos.objects.get(id=p_id)
+        subtotal = prod.precio * cant
         total += subtotal
-        items_carrito.append({
-            'producto': producto,
-            'cantidad': cantidad,
-            'subtotal': subtotal
-        })
-    
+        items_carrito.append({'producto': prod, 'cantidad': cant, 'subtotal': subtotal})
     return render(request, 'carrito.html', {'items': items_carrito, 'total': total})
 
 @login_required
 def eliminar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
-    prod_id_str = str(producto_id)
-    
-    if prod_id_str in carrito:
-        del carrito[prod_id_str]
+    if str(producto_id) in carrito:
+        del carrito[str(producto_id)]
         request.session['cart'] = carrito
-        
     return redirect('ver_carrito')
 
 @login_required
-def checkout_whatsapp(request):
+def checkout(request):
+    """Crea la orden real en la base de datos"""
     carrito = request.session.get('cart', {})
     if not carrito:
         return redirect('index')
+    
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+    except Clientes.DoesNotExist:
+        messages.error(request, 'Debes completar tu perfil de cliente antes de comprar.')
+        return redirect('index')
         
-    # Construir mensaje de WhatsApp
-    mensaje = "Hola, me gustaría ordenar lo siguiente:%0A"
-    productos_db = Productos.objects.filter(id__in=carrito.keys())
-    total = 0
+    # Crear Orden
+    orden = Ordenes.objects.create(cliente=cliente, total=0)
+    total_orden = 0
     
-    for producto in productos_db:
-        cantidad = carrito[str(producto.id)]
-        subtotal = producto.precio * cantidad
-        total += subtotal
-        mensaje += f"- {cantidad}x {producto.nombre} (${subtotal})%0A"
+    for p_id, cant in carrito.items():
+        prod = Productos.objects.get(id=p_id)
+        subtotal = prod.precio * cant
+        total_orden += subtotal
+        
+        DetallesOrdenes.objects.create(
+            orden=orden,
+            producto=prod,
+            cantidad=cant,
+            precio_unitario=prod.precio
+        )
+        
+        # Descontar Stock
+        prod.stock -= cant
+        prod.save()
     
-    mensaje += f"%0ATotal a pagar: ${total}"
+    orden.total = total_orden
+    orden.save()
     
-    # Redirigir a WhatsApp
-    from django.conf import settings
-    numero_whatsapp = getattr(settings, 'WHATSAPP_NUMBER', "593999999999")
-    url = f"https://wa.me/{numero_whatsapp}?text={mensaje}"
+    # Limpiar carrito
+    request.session['cart'] = {}
     
-    # Opcional: Limpiar carrito después de ordenar
-    # request.session['cart'] = {}
-    
-    return redirect(url)
+    messages.success(request, f'Orden #{orden.id} creada exitosamente por ${total_orden}.')
+    return redirect('mis_compras')
+
+# --- Vistas de Apoyo ---
+@login_required
+@rol_requerido('Administrador', 'Supervisor')
+def clientes_list(request):
+    clientes = Clientes.objects.all()
+    return render(request, 'clientes.html', {'clientes': clientes})
 
 @login_required
-def categorias(request):
-    categorias_list = Categorias.objects.all()
-    return render(request, 'categorias.html', {'categorias': categorias_list})
+def detalle_orden(request, orden_id):
+    orden = get_object_or_404(Ordenes, id=orden_id)
+    # Seguridad: solo el dueño o personal puede verla
+    if not request.user.is_superuser and request.user.email != orden.cliente.email:
+        if not request.user.groups.filter(name__in=['Supervisor', 'Bodeguero']).exists():
+            return redirect('index')
+            
+    detalles = DetallesOrdenes.objects.filter(orden=orden)
+    return render(request, 'detalles_ordenes.html', {'orden': orden, 'detalles': detalles})

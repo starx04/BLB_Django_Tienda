@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Gestión de Personal{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 500px; margin: 2rem auto; background: var(--bg-sidebar); padding: 2.5rem; border-radius: 20px; border: 1px solid var(--border);">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <i class="ph ph-shield-check" style="font-size: 4rem; color: var(--accent);"></i>
+        <h2 style="margin: 1rem 0 0.5rem 0;">Nuevo Empleado</h2>
+        <p style="color: var(--text-secondary);">Acceso exclusivo del Administrador</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem;">Nombre de Usuario</label>
+                <input type="text" name="username" class="form-control" placeholder="ej: juancito_vendedor" required>
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem;">Correo Electrónico</label>
+                <input type="email" name="email" class="form-control" placeholder="ej: juan@licoreria.com" required>
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem;">Contraseña Temporal</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 0.5rem;">Rol Asignado</label>
+                <select name="rol" class="form-select" required>
+                    <option value="Bodeguero">Bodeguero (Gestión de Stock)</option>
+                    <option value="Supervisor">Supervisor (Préstamos y Regalos)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; justify-content: center; padding: 12px; margin-top: 1rem;">
+                Dar de Alta Empleado
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

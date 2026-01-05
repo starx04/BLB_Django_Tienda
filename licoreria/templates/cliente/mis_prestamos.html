@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Mis Préstamos{% endblock %}
+
+{% block content %}
+<div style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border);">
+    <h2 style="margin-top: 0; margin-bottom: 2rem;"><i class="ph ph-hand-shake" style="color: var(--accent);"></i>
+        Estado de mis Préstamos</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in prestamos %}
+            <tr>
+                <td>{{ r.fecha_prestamo|date:"d M Y" }}</td>
+                <td>{{ r.descripcion }}</td>
+                <td style="color: var(--danger); font-weight: bold;">${{ r.valor }}</td>
+                <td>
+                    {% if r.devuelto %}
+                    <span style="color: var(--success); font-weight: 600;">Cancelado / Pagado</span>
+                    {% else %}
+                    <span
+                        style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">Pendiente
+                        de Pago</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #64748b; padding: 4rem;">
+                    No tienes préstamos registrados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div
+        style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px dashed var(--accent);">
+        <p style="margin: 0; color: var(--accent); font-weight: 500;">
+            <i class="ph ph-info"></i> Recuerda que puedes solicitar ampliaciones de cupo o nuevos préstamos contactando
+            directamente al Supervisor en la tienda física.
+        </p>
+    </div>
+</div>
+{% endblock %}

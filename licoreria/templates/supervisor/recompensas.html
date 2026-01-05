@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Recompensas y Regalos{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 2rem;">
+    <!-- Formulario -->
+    <div
+        style="flex: 1; max-width: 400px; background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); height: fit-content;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem;"><i class="ph ph-gift" style="color: var(--accent);"></i>
+            Otorgar Recompensa</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{
+                        field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Otorgar Regalo/Puntos
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista -->
+    <div style="flex: 2;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Registro de Beneficios</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recompensas %}
+                <tr>
+                    <td><strong>{{ r.cliente.nombre }}</strong></td>
+                    <td><span class="tag">{{ r.get_tipo_display }}</span></td>
+                    <td style="color: var(--accent); font-weight: bold;">{{ r.valor }}</td>
+                    <td>{{ r.fecha_vencimiento|default:"--" }}</td>
+                    <td>
+                        {% if r.utilizada %}
+                        <span style="color: var(--text-secondary);">Utilizada</span>
+                        {% else %}
+                        <span style="color: var(--success);">Disponible</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem;">No hay recompensas otorgadas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

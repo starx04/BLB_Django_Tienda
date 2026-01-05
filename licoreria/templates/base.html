@@ -277,61 +277,70 @@
                     <i class="ph ph-squares-four"></i> Inicio
                 </a>
             </li>
+
+            {# Lógica de menú por Rol #}
+
+            {% if user.groups.all.0.name == 'Cliente' %}
             <li class="nav-item">
-                <a href="{% url 'productos' %}"
-                    class="{% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
-                    <i class="ph ph-bottle"></i> Licores
+                <a href="{% url 'productos' %}" class="{% if 'productos' in request.path %}active{% endif %}">
+                    <i class="ph ph-bottle"></i> Ver Licores
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'snacks' %}"
-                    class="{% if request.resolver_match.url_name == 'snacks' %}active{% endif %}">
-                    <i class="ph ph-cookie"></i> Snacks
+                <a href="{% url 'snacks' %}" class="{% if 'snacks' in request.path %}active{% endif %}">
+                    <i class="ph ph-cookie"></i> Ver Snacks
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'ordenes' %}"
-                    class="{% if request.resolver_match.url_name == 'ordenes' %}active{% endif %}">
-                    <i class="ph ph-shopping-cart"></i> Ventas
+                <a href="{% url 'mis_compras' %}" class="{% if 'compras' in request.path %}active{% endif %}">
+                    <i class="ph ph-shopping-cart"></i> Mis Compras
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'clientes' %}"
-                    class="{% if request.resolver_match.url_name == 'clientes' %}active{% endif %}">
-                    <i class="ph ph-users"></i> Clientes
+                <a href="{% url 'mis_prestamos' %}" class="{% if 'prestamos' in request.path %}active{% endif %}">
+                    <i class="ph ph-handshake"></i> Mis Préstamos
+                </a>
+            </li>
+            {% endif %}
+
+            {% if user.groups.all.0.name == 'Bodeguero' or user.is_superuser %}
+            <li class="nav-item">
+                <a href="{% url 'gestion_productos' %}"
+                    class="{% if 'gestion/productos' in request.path %}active{% endif %}">
+                    <i class="ph ph-package"></i> Gestión Productos
+                </a>
+            </li>
+            {% endif %}
+
+            {% if user.groups.all.0.name == 'Supervisor' or user.is_superuser %}
+            <li class="nav-item">
+                <a href="{% url 'gestion_prestamos' %}"
+                    class="{% if 'gestion/prestamos' in request.path %}active{% endif %}">
+                    <i class="ph ph-hand-coins"></i> Gestión Préstamos
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'categorias' %}"
-                    class="{% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
-                    <i class="ph ph-tag"></i> Categorías
+                <a href="{% url 'gestion_recompensas' %}"
+                    class="{% if 'recompensas' in request.path %}active{% endif %}">
+                    <i class="ph ph-gift"></i> Recompensas/Regalos
+                </a>
+            </li>
+            {% endif %}
+
+            {% if user.groups.all.0.name == 'Administrador' or user.is_superuser %}
+            <li class="nav-item">
+                <a href="{% url 'crear_empleado' %}" class="{% if 'empleado' in request.path %}active{% endif %}">
+                    <i class="ph ph-user-plus"></i> Crear Personal
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'empleados' %}"
-                    class="{% if request.resolver_match.url_name == 'empleados' %}active{% endif %}">
-                    <i class="ph ph-identification-card"></i> Personal
+                <a href="{% url 'clientes' %}" class="{% if 'clientes' in request.path %}active{% endif %}">
+                    <i class="ph ph-users"></i> Ver Clientes
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{% url 'distribuidores' %}"
-                    class="{% if request.resolver_match.url_name == 'distribuidores' %}active{% endif %}">
-                    <i class="ph ph-truck"></i> Distribuidores
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'gastos' %}"
-                    class="{% if request.resolver_match.url_name == 'gastos' %}active{% endif %}">
-                    <i class="ph ph-money"></i> Gastos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'prestamos' %}"
-                    class="{% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
-                    <i class="ph ph-handshake"></i> Préstamos
-                </a>
-            </li>
+            {% endif %}
         </ul>
+
 
         <!-- User Profile Section -->
         {% if user.is_authenticated %}

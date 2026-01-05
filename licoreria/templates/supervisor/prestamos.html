@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Control de Préstamos{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 2rem;">
+    <!-- Formulario a la Izquierda -->
+    <div
+        style="flex: 1; max-width: 400px; background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); height: fit-content;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem;"><i class="ph ph-hand-coins" style="color: var(--accent);"></i>
+            Registrar Préstamo</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{
+                        field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Registrar Préstamo
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista a la Derecha -->
+    <div style="flex: 2;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Historial Reciente</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in prestamos %}
+                <tr>
+                    <td><strong>{{ p.cliente.nombre }}</strong></td>
+                    <td style="color: white; font-weight: bold;">${{ p.valor }}</td>
+                    <td>{{ p.fecha_prestamo|date:"d M Y" }}</td>
+                    <td>
+                        {% if p.devuelto %}
+                        <span
+                            style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">Devuelto</span>
+                        {% else %}
+                        <span
+                            style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">Pendiente</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 2rem;">No hay préstamos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

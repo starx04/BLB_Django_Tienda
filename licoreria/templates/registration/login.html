@@ -42,6 +42,10 @@
     </form>
 
     <div style="margin-top: 2rem; text-align: center; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            ¿Eres un cliente nuevo? <a href="{% url 'registro_cliente' %}"
+                style="color: var(--accent); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
+        </p>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">¿Eres nuevo empleado?</p>
         <a href="{% url 'validar_registro' %}" style="color: var(--accent); text-decoration: none; font-weight: 500;">
             Registrarse aquí

@@ -21,11 +21,13 @@
     <tbody>
         {% for detalle in detalles %}
         <tr>
-            <td><a href="#" style="color: var(--accent-color); text-decoration: none;">Orden #{{ detalle.orden.id }}</a></td>
+            <td><a href="#" style="color: var(--accent-color); text-decoration: none;">Orden #{{ detalle.orden.id }}</a>
+            </td>
             <td>{{ detalle.producto.nombre }}</td>
             <td>{{ detalle.cantidad }}</td>
-            <td>${{ detalle.precio_unitario }}</td>
-            <td style="color: var(--price-color); font-weight: bold;">${{ detalle.precio_unitario|floatform:2 }} *</td>
+            <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+            <td style="color: var(--price-color); font-weight: bold;">${% widthratio detalle.precio_unitario 1
+                detalle.cantidad %}</td>
         </tr>
         {% empty %}
         <tr>
