@@ -339,3 +339,8 @@ def checkout_whatsapp(request):
     # request.session['cart'] = {}
     
     return redirect(url)
+
+@login_required
+def categorias(request):
+    categorias_list = Categorias.objects.all()
+    return render(request, 'categorias.html', {'categorias': categorias_list})

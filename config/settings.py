@@ -125,3 +125,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Business Settings
 WHATSAPP_NUMBER = "593999999999" # Cambiar por el número real
 
+
+# Auth Settings
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login'
