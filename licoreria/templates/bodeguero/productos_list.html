@@ -41,9 +41,10 @@
             <td><strong style="color: white;">{{ producto.nombre }}</strong><br><small
                     style="color: var(--text-secondary);">{{ producto.marca }}</small></td>
             <td><span class="tag">{{ producto.categoria }}</span></td>
-            <td style="color: var(--success); font-weight: bold;">${{ producto.precio }}</td>
+            <td style="color: var(--accent-success); font-weight: bold;">${{ producto.precio }}</td>
             <td>
-                {% if producto.stock < 10 %} <span style="color: var(--danger); font-weight: bold;">{{ producto.stock }}
+                {% if producto.stock < 10 %} <span style="color: var(--accent-danger); font-weight: bold;">{{
+                    producto.stock }}
                     (Bajo)</span>
                     {% else %}
                     <span style="color: var(--text-primary);">{{ producto.stock }}</span>

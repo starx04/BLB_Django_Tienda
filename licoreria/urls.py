@@ -8,6 +8,8 @@ urlpatterns = [
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('registro/', views.registro_cliente, name='registro_cliente'),
+    path('accounts/validate/', views.validar_admin, name='validar_registro'),
+    path('accounts/register/', views.registro_empleado_publico, name='registro_empleado_publico'),
     path('admin/empleado/nuevo/', views.registro_empleado, name='crear_empleado'),
 
     # General

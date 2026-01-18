@@ -1,7 +1,10 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Categorias(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la Categoría")
+    imagen = models.ImageField(upload_to='categorias/', null=True, blank=True, verbose_name="Imagen Representativa")
+    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
 
     def __str__(self):
         return self.nombre
@@ -31,15 +34,17 @@ class Productos(models.Model):
     id_externo_api = models.CharField(max_length=100, blank=True, null=True, help_text="ID referencia en API externa")
 
     def save(self, *args, **kwargs):
-        # Auto-fetch image for Snacks from Open Food Facts if missing and barcode exists
+        # Auto-fetch image if missing and barcode exists
         if self.codigo_barras and not self.url_imagen_externa and not self.imagen:
             try:
-                # Comprobar si es un snack o comida
-                is_snack = self.categoria and self.categoria.nombre in ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
+                import requests
+                # 1. Definir categorías de Snacks
+                nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces', 'Golosinas', 'Chocolates']
+                is_snack = self.categoria and self.categoria.nombre in nombres_snacks
                 
                 if is_snack:
-                    import requests
-                    url = "https://world.openfoodfacts.org/api/v0/product/{}.json".format(self.codigo_barras)
+                    # Búsqueda en Open Food Facts (Snacks)
+                    url = f"https://world.openfoodfacts.org/api/v0/product/{self.codigo_barras}.json"
                     response = requests.get(url, timeout=5)
                     if response.status_code == 200:
                         data = response.json()
@@ -48,8 +53,27 @@ class Productos(models.Model):
                             image_url = product_data.get('image_front_url')
                             if image_url:
                                 self.url_imagen_externa = image_url
+                
+                else:
+                    # Intento de búsqueda en Beer9 API (Licores) si no es snack
+                    # Nota: Requiere configuración de RAPIDAPI_KEY en api_views.py o settings
+                    from .api_views import RAPIDAPI_KEY
+                    if RAPIDAPI_KEY and RAPIDAPI_KEY != "TU_CLAVE_DE_RAPIDAPI_AQUI":
+                        url = f"https://beer9.p.rapidapi.com/search/{self.codigo_barras}"
+                        headers = {
+                            "X-RapidAPI-Key": RAPIDAPI_KEY,
+                            "X-RapidAPI-Host": "beer9.p.rapidapi.com"
+                        }
+                        response = requests.get(url, headers=headers, timeout=5)
+                        if response.status_code == 200:
+                            data = response.json()
+                            # Asumiendo que la API retorna un campo image o similar
+                            # Ajusta según la estructura real de Beer9
+                            if data and isinstance(data, list) and len(data) > 0:
+                                self.url_imagen_externa = data[0].get('image') or data[0].get('imageUrl')
+
             except Exception as e:
-                print(f"Error fetching image for {self.nombre}: {e}")
+                print(f"Error fetching external data for {self.nombre}: {e}")
 
         super().save(*args, **kwargs)
 
@@ -59,6 +83,7 @@ class Productos(models.Model):
 import uuid
 
 class Clientes(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     nombre = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
     telefono = models.CharField(max_length=20)
@@ -74,6 +99,7 @@ class Clientes(models.Model):
         return f"{self.nombre} ({self.codigo_unico})"
 
 class Empleados(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     nombre = models.CharField(max_length=150)
     cargo = models.CharField(max_length=100)
     sueldo = models.DecimalField(max_digits=10, decimal_places=2)

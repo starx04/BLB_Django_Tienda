@@ -3,85 +3,93 @@
 {% block header_title %}Resumen General{% endblock %}
 
 {% block extra_css %}
-.stats-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-gap: 1.5rem;
-margin-bottom: 2rem;
-}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-.stat-card {
-background: var(--bg-sidebar);
-padding: 1.5rem;
-border-radius: 16px;
-border: 1px solid var(--border);
-display: flex;
-align-items: center;
-gap: 1rem;
-transition: transform 0.2s;
-}
+    .stat-card {
+        background: var(--bg-sidebar);
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.2s;
+    }
 
-.stat-card:hover {
-transform: translateY(-3px);
-border-color: var(--accent);
-}
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+    }
 
-.stat-icon {
-width: 50px;
-height: 50px;
-border-radius: 12px;
-background: rgba(139, 92, 246, 0.1);
-color: var(--accent);
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 1.5rem;
-}
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: rgba(0, 243, 255, 0.1);
+        color: var(--accent-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+    }
 
-.stat-info h3 {
-margin: 0;
-font-size: 1.5rem;
-font-weight: 700;
-}
+    .stat-info h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+    }
 
-.stat-info p {
-margin: 0;
-font-size: 0.85rem;
-color: var(--text-secondary);
-}
+    .stat-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
 
-.quick-actions-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-gap: 1.5rem;
-}
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
 
-.action-card {
-background: var(--bg-card);
-padding: 2rem;
-border-radius: 16px;
-text-align: center;
-text-decoration: none;
-color: white;
-border: 1px solid var(--border);
-transition: all 0.2s;
-}
+    .action-card {
+        background: var(--bg-card);
+        padding: 2rem;
+        border-radius: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
 
-.action-card:hover {
-background: var(--bg-sidebar);
-border-color: var(--accent);
-}
+    .action-card:hover {
+        background: var(--bg-sidebar);
+        border-color: var(--accent-secondary);
+        box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);
+    }
 
-.action-card i {
-font-size: 2rem;
-margin-bottom: 1rem;
-color: var(--accent);
-display: block;
-}
+    .action-card i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--accent-secondary);
+        display: block;
+        filter: drop-shadow(0 0 5px var(--accent-secondary));
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<!-- Tarjetas de Estadísticas (Ficticias por ahora, se pueden conectar a backend) -->
+{% if is_dashboard %}
+<!-- Tarjetas de Estadísticas (Solo Admin/Staff) -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon"><i class="ph ph-currency-dollar"></i></div>
@@ -127,52 +135,36 @@ display: block;
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const ctx = document.getElementById('salesChart').getContext('2d');
-
-        // Parse data from Django json_script tags
         const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
         const chartData = JSON.parse(document.getElementById('chart-data-data').textContent);
 
-        const salesChart = new Chart(ctx, {
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0, 243, 255, 0.5)');
+        gradient.addColorStop(1, 'rgba(0, 243, 255, 0.05)');
+
+        new Chart(ctx, {
             type: 'line',
             data: {
                 labels: chartLabels,
                 datasets: [{
                     label: 'Ventas ($)',
                     data: chartData,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderColor: '#00f3ff',
+                    backgroundColor: gradient,
                     borderWidth: 2,
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#8b5cf6'
+                    pointBackgroundColor: '#00f3ff',
+                    pointBorderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.05)'
-                        },
-                        ticks: {
-                            color: '#94a3b8'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#94a3b8'
-                        }
-                    }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
                 }
             }
         });
@@ -198,4 +190,49 @@ display: block;
         <span>Historial</span>
     </a>
 </div>
+
+{% else %}
+<!-- VISTA PÚBLICA (Landing Page) -->
+<div style="text-align: center; padding: 4rem 1rem;">
+    <h1
+        style="font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(90deg, #fff, var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Licorería Neon
+    </h1>
+    <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 3rem auto;">
+        La mejor selección de licores, vinos y snacks premium. <br>
+        Encuentra lo que buscas con estilo.
+    </p>
+
+    <div style="display: flex; gap: 1.5rem; justify-content: center;">
+        <a href="{% url 'productos' %}" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">
+            <i class="ph ph-bottle"></i> Ver Catálogo de Licores
+        </a>
+        <a href="{% url 'snacks' %}" class="btn btn-secondary" style="padding: 15px 30px; font-size: 1.1rem;">
+            <i class="ph ph-cookie"></i> Ver Snacks
+        </a>
+    </div>
+
+    <!-- Features -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 5rem; text-align: left;">
+        <div class="card" style="text-align: center;">
+            <i class="ph ph-storefront"
+                style="font-size: 3rem; color: var(--accent-secondary); margin-bottom: 1rem;"></i>
+            <h3>Tienda Premium</h3>
+            <p style="color: var(--text-secondary);">Productos seleccionados de la más alta calidad.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <i class="ph ph-truck" style="font-size: 3rem; color: var(--accent-success); margin-bottom: 1rem;"></i>
+            <h3>Envíos Rápidos</h3>
+            <p style="color: var(--text-secondary);">Recibe tu pedido en minutos, listo para disfrutar.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <i class="ph ph-shield-check"
+                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1rem;"></i>
+            <h3>Compra Segura</h3>
+            <p style="color: var(--text-secondary);">Proceso de pago y gestión 100% seguros.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -10,7 +10,7 @@ from django.conf import settings
 from .models import (Productos, Categorias, Ordenes, DetallesOrdenes, Clientes, 
                      Empleados, Distribuidores, Gastos, Prestamos, Recompensas)
 from .forms import (ClienteForm, EmpleadoForm, PrestamoForm, RegistroClienteForm, 
-                    ProductoForm, RecompensaForm)
+                    ProductoForm, RecompensaForm, RegistroEmpleadoForm)
 from .decorators import (rol_requerido, administrador_required, bodeguero_required, 
                         supervisor_required, cliente_required)
 
@@ -43,27 +43,40 @@ def registro_cliente(request):
 
 # --- Dashboard General ---
 
-@login_required
 def index(request):
+    # Permitir acceso publico a index (Landing Page)
+    # y borrar redireccion forzada
+
+        
     hoy = timezone.now().date()
     
     # Si es cliente, redirigir a su vista específica o mostrar dashboard limitado
     if request.user.groups.filter(name='Cliente').exists():
         return redirect('mis_compras')
 
-    # Estadísticas para Empleados/Admin
-    ventas_hoy = Ordenes.objects.filter(fecha__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
-    pedidos_nuevos = Ordenes.objects.filter(fecha__date=hoy).count()
-    clientes_activos = Clientes.objects.count()
-    productos_stock = Productos.objects.aggregate(Sum('stock'))['stock__sum'] or 0
-
     chart_labels = []
     chart_data = []
-    for i in range(6, -1, -1):
-        fecha = hoy - timezone.timedelta(days=i)
-        chart_labels.append(fecha.strftime("%d/%m"))
-        venta_dia = Ordenes.objects.filter(fecha__date=fecha).aggregate(Sum('total'))['total__sum'] or 0
-        chart_data.append(float(venta_dia))
+    
+    is_admin = request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
+    
+    # Estadísticas solo para staff
+    if is_admin:
+        ventas_hoy = Ordenes.objects.filter(fecha__date=hoy).aggregate(Sum('total'))['total__sum'] or 0
+        pedidos_nuevos = Ordenes.objects.filter(fecha__date=hoy).count()
+        clientes_activos = Clientes.objects.count()
+        productos_stock = Productos.objects.aggregate(Sum('stock'))['stock__sum'] or 0
+
+        for i in range(6, -1, -1):
+            fecha = hoy - timezone.timedelta(days=i)
+            chart_labels.append(fecha.strftime("%d/%m"))
+            venta_dia = Ordenes.objects.filter(fecha__date=fecha).aggregate(Sum('total'))['total__sum'] or 0
+            chart_data.append(float(venta_dia))
+    else:
+        # Valores por defecto para reducir errores en template si se usaran (aunque los ocultaremos)
+        ventas_hoy = 0
+        pedidos_nuevos = 0
+        clientes_activos = 0
+        productos_stock = 0
 
     context = {
         'ventas_hoy': ventas_hoy,
@@ -71,7 +84,8 @@ def index(request):
         'clientes_activos': clientes_activos,
         'productos_stock': productos_stock,
         'chart_labels': chart_labels,
-        'chart_data': chart_data
+        'chart_data': chart_data,
+        'is_dashboard': is_admin
     }
     return render(request, 'index.html', context)
 
@@ -204,7 +218,6 @@ def registro_empleado(request):
 
 # --- Catálogo y Carrito (Acceso General para comprar) ---
 
-@login_required
 def productos_catalogo(request):
     nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
     categorias = Categorias.objects.exclude(nombre__in=nombres_snacks)
@@ -218,19 +231,25 @@ def productos_catalogo(request):
     if categoria_id:
         productos_list = productos_list.filter(categoria_id=categoria_id)
         
+    categoria_activa_id = None
+    if categoria_id:
+        try:
+            categoria_activa_id = int(categoria_id)
+        except ValueError:
+            pass
+
     return render(request, 'productos.html', {
         'categorias': categorias,
         'productos_globales': productos_list,
-        'modo_busqueda': True if (busqueda or categoria_id) else False
+        'modo_busqueda': True if (busqueda or categoria_id) else False,
+        'categoria_activa_id': categoria_activa_id
     })
 
-@login_required
 def snacks_catalogo(request):
     nombres_snacks = ['Snacks', 'Bocaditos', 'Comida', 'Papas', 'Frutos Secos', 'Dulces']
     productos_list = Productos.objects.filter(categoria__nombre__in=nombres_snacks)
     return render(request, 'snacks.html', {'productos_globales': productos_list})
 
-@login_required
 def agregar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     prod_id_str = str(producto_id)
@@ -246,7 +265,6 @@ def agregar_carrito(request, producto_id):
     total_items = sum(carrito.values())
     return JsonResponse({'message': 'Agregado', 'cart_count': total_items})
 
-@login_required
 def ver_carrito(request):
     carrito = request.session.get('cart', {})
     items_carrito = []
@@ -258,7 +276,6 @@ def ver_carrito(request):
         items_carrito.append({'producto': prod, 'cantidad': cant, 'subtotal': subtotal})
     return render(request, 'carrito.html', {'items': items_carrito, 'total': total})
 
-@login_required
 def eliminar_carrito(request, producto_id):
     carrito = request.session.get('cart', {})
     if str(producto_id) in carrito:
@@ -325,3 +342,50 @@ def detalle_orden(request, orden_id):
             
     detalles = DetallesOrdenes.objects.filter(orden=orden)
     return render(request, 'detalles_ordenes.html', {'orden': orden, 'detalles': detalles})
+
+# --- Vistas de Autenticación de Empleados (Basado en AUTENTICACION.md) ---
+
+def validar_admin(request):
+    """Primer paso: Validar clave de administrador"""
+    if request.method == 'POST':
+        admin_pass = request.POST.get('admin_pass')
+        if admin_pass == 'axfer2304': # Clave definida en documentacion
+            request.session['admin_validated'] = True
+            return redirect('registro_empleado_publico')
+        else:
+            return render(request, 'registration/validate_admin.html', {'error': 'Clave de administrador incorrecta'})
+    return render(request, 'registration/validate_admin.html')
+
+def registro_empleado_publico(request):
+    """Segundo paso: Registro real si se paso la validacion"""
+    if not request.session.get('admin_validated'):
+        return redirect('validar_registro')
+
+    if request.method == 'POST':
+        form = RegistroEmpleadoForm(request.POST)
+        if form.is_valid():
+            # Crear Usuario
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                email=form.cleaned_data['email'],
+                password=form.cleaned_data['password']
+            )
+            user.is_staff = True
+            
+            # Asignar Grupo
+            rol = form.cleaned_data['rol']
+            grupo = Group.objects.get(name=rol)
+            user.groups.add(grupo)
+            user.save()
+            
+            # Crear perfil de empleado
+            Empleados.objects.create(nombre=form.cleaned_data['username'], cargo=rol, sueldo=0)
+            
+            # Limpiar sesion de validacion
+            del request.session['admin_validated']
+            
+            messages.success(request, f'Registro exitoso para {rol}. Ya puedes iniciar sesión.')
+            return redirect('login')
+    else:
+        form = RegistroEmpleadoForm()
+    return render(request, 'registration/register.html', {'form': form})
