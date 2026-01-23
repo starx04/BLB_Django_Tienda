@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Importar Productos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 2.5rem;
+        animation: slideDown 0.6s ease;
+    }
+
+    .panel-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 1rem;
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+    }
+
+    .search-box input {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border);
+        padding: 15px 25px;
+        border-radius: 15px;
+        color: white;
+        font-size: 1.1rem;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .coctel-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        position: relative;
+    }
+
+    .coctel-item:hover {
+        border-color: var(--accent-primary);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.2);
+    }
+
+    .coctel-photo {
+        height: 220px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        background: #000;
+    }
+
+    .coctel-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .coctel-item:hover .coctel-photo img {
+        transform: scale(1.1);
+    }
+
+    .coctel-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        z-index: 2;
+    }
+
+    .coctel-details {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .coctel-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .coctel-cat-str {
+        font-size: 0.85rem;
+        color: var(--accent-primary);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .coctel-ingredients {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        line-clamp: 3;
+        overflow: hidden;
+        font-style: italic;
+        line-height: 1.5;
+    }
+
+    .import-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: auto;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .field-group label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .field-group input,
+    .field-group select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        padding: 10px;
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .field-group input:focus,
+    .field-group select:focus {
+        border-color: var(--accent-primary);
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="import-container">
+    <div class="panel">
+        <div class="panel-header">
+            <h2 style="font-size: 2rem; font-weight: 800; margin: 0;">
+                <i class="ph ph-brandy" style="color: var(--accent-primary);"></i> Importador de Cócteles/Licores
+            </h2>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="tag"
+                    style="background: var(--accent-primary); color: black; font-weight: 800; border-radius: 20px; padding: 6px 15px; font-size: 0.8rem;">
+                    API: THECOCKTAILDB
+                </span>
+            </div>
+        </div>
+
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; text-align: center;">Busca recetas internacionales
+            por nombre o ingrediente</p>
+
+        <div class="search-box">
+            <input type="text" id="search-licores" placeholder="Ej: Margarita, Mojito, Gin Tonic..."
+                onkeypress="handleEnter(event)">
+            <button class="btn btn-primary" onclick="searchAPI('licores')" style="padding: 0 30px;">
+                <i class="ph ph-magnifying-glass"></i> BUSCAR
+            </button>
+            <button class="btn btn-secondary" onclick="searchRandom()" title="Sugerencia Aleatoria"
+                style="padding: 0 20px;">
+                <i class="ph ph-shuffle"></i>
+            </button>
+        </div>
+
+        <div id="results-licores" class="results-grid">
+            <div
+                style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 4rem; opacity: 0.5;">
+                <i class="ph ph-magnifying-glass" style="font-size: 4rem; margin-bottom: 1.5rem;"></i>
+                <p style="font-size: 1.2rem;">Ingresa el nombre de un cóctel para comenzar</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script id="categories-data" type="application/json">
+    [
+        {% for cat in categorias %}
+            { "id": "{{ cat.id }}", "nombre": "{{ cat.nombre|escapejs }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+</script>
+
+<script>
+    const SERVER_CATEGORIES = JSON.parse(document.getElementById('categories-data').textContent);
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') searchAPI('licores');
+    }
+
+    async function searchRandom() {
+        const input = document.getElementById('search-licores');
+        input.value = 'random';
+        searchAPI('licores');
+    }
+
+    async function searchAPI(type) {
+        const input = document.getElementById('search-licores');
+        const resultsContainer = document.getElementById('results-licores');
+        let query = input.value.trim();
+
+        if (!query) return;
+
+        resultsContainer.innerHTML = `
+            <div style="text-align:center; padding: 3rem; color: var(--accent-primary);">
+                <i class="ph ph-spinner ph-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <p>Buscando recetas de cócteles...</p>
+            </div>`;
+
+        try {
+            const response = await fetch(`/api/importar/cocteles/buscar/?q=${encodeURIComponent(query)}`);
+
+            if (!response.ok) {
+                let errorMsg = 'Error en el servidor de Cócteles';
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error('No se pudo parsear error JSON:', e);
+                }
+                resultsContainer.innerHTML = `<div style="text-align: center; color: var(--accent-danger); padding: 3rem;">
+                    <i class="ph ph-warning-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i><br>
+                    <p style="color: white;">Error: ${errorMsg}</p>
+                </div>`;
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data && Array.isArray(data)) {
+                renderResults(data);
+            } else {
+                renderResults([]);
+            }
+        } catch (error) {
+            console.error('Fallo en fetch:', error);
+            resultsContainer.innerHTML = `<div style="color: var(--accent-danger); text-align: center; padding: 3rem;">
+                <i class="ph ph-wifi-slash" style="font-size: 3rem; margin-bottom: 1rem; color: #ff0055;"></i>
+                <p style="color: white;">Error de conexión con el servidor.</p>
+            </div>`;
+        }
+    }
+
+    function renderResults(items) {
+        const container = document.getElementById('results-licores');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding: 4rem; color: var(--text-secondary); opacity: 0.5;">
+                    <i class="ph ph-mask-sad" style="font-size: 4rem; margin-bottom: 1.5rem;"></i>
+                    <p style="font-size: 1.2rem;">No se encontraron cócteles para esta búsqueda.</p>
+                </div>`;
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const name = item.nombre;
+            const img = item.imagen || 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+            const ingredients = item.ingredientes || 'Receta secreta...';
+            const catStr = item.categoria || 'Coctel';
+            const isAlcoholic = item.es_alcoholico;
+
+            const card = document.createElement('div');
+            card.className = 'coctel-item';
+            card.style.animation = `slideUp 0.5s ease forwards ${index * 0.1}s`;
+            card.style.opacity = '0';
+
+            card.innerHTML = `
+                <div class="coctel-photo">
+                    <div class="coctel-badge">${isAlcoholic ? 'CON ALCOHOL' : 'SIN ALCOHOL'}</div>
+                    <img src="${img}" alt="${name}" onerror="this.src='https://via.placeholder.com/400x300?text=Error+Imagen'">
+                </div>
+                
+                <div class="coctel-details">
+                    <div class="coctel-cat-str">${catStr}</div>
+                    <div class="coctel-title">${name}</div>
+                    <div class="coctel-ingredients">
+                        <i class="ph ph-flask"></i> ${ingredients}
+                    </div>
+                    
+                    <form onsubmit="importProduct(event)">
+                        {% csrf_token %}
+                        <input type="hidden" name="nombre" value="${name}">
+                        <input type="hidden" name="id_externo" value="${item.id}">
+                        <input type="hidden" name="imagen_url" value="${img}">
+                        <input type="hidden" name="categoria_api" value="${catStr}">
+                        <input type="hidden" name="ingredientes" value="${ingredients}">
+                        <input type="hidden" name="instrucciones" value="${(item.instrucciones || '').replace(/"/g, '&quot;')}">
+                        <input type="hidden" name="es_alcoholico" value="${isAlcoholic}">
+                        
+                        <div class="import-fields">
+                            <div class="field-group" style="grid-column: 1/-1;">
+                                <label>Categoría Sistema</label>
+                                <select name="categoria" required>
+                                    <option value="">Selecciona...</option>
+                                    ${SERVER_CATEGORIES.map(c => `<option value="${c.id}" ${c.id == item.categoria_sugerida ? 'selected' : ''}>${c.nombre}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label>Precio ($)</label>
+                                <input type="number" name="precio" value="${item.precio_sugerido}" step="0.01" required>
+                            </div>
+                            <div class="field-group">
+                                <label>Stock Inicial</label>
+                                <input type="number" name="stock" value="0" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                            <i class="ph ph-plus-circle" style="font-size: 1.4rem;"></i> IMPORTAR COCTEL
+                        </button>
+                    </form>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    async function importProduct(event) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = form.querySelector('button');
+        const icon = btn.querySelector('i');
+
+        const formData = new FormData(form);
+        const data = {
+            nombre: formData.get('nombre'),
+            id_externo: formData.get('id_externo'),
+            imagen_url: formData.get('imagen_url'),
+            categoria_api: formData.get('categoria_str'),
+            categoria: formData.get('categoria'),
+            precio: formData.get('precio'),
+            stock: formData.get('stock'),
+            ingredientes: formData.get('ingredientes'),
+            instrucciones: formData.get('instrucciones'),
+            es_alcoholico: formData.get('es_alcoholico') === 'true'
+        };
+
+        const originalContent = icon.className;
+        btn.disabled = true;
+        icon.className = 'ph ph-spinner ph-spin';
+
+        try {
+            const response = await fetch(`/api/cocteles/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                btn.style.background = 'var(--accent-success)';
+                btn.style.borderColor = 'var(--accent-success)';
+                icon.className = 'ph ph-check';
+
+                Toastify({
+                    text: "Producto importado correctamente",
+                    duration: 3000,
+                    style: { background: "var(--accent-success)" }
+                }).showToast();
+
+                setTimeout(() => {
+                    window.location.href = "{% url 'gestion_cocteles' %}";
+                }, 1500);
+            } else {
+                const err = await response.json();
+                console.error(err);
+                icon.className = 'ph ph-warning';
+                btn.style.borderColor = 'var(--accent-danger)';
+                Toastify({
+                    text: "Error al importar (Verifica datos)",
+                    duration: 3000,
+                    style: { background: "var(--accent-danger)" }
+                }).showToast();
+                setTimeout(() => {
+                    btn.disabled = false;
+                    icon.className = originalContent;
+                }, 2000);
+            }
+        } catch (e) {
+            console.error(e);
+            Toastify({ text: "Error de red", style: { background: "var(--accent-danger)" } }).showToast();
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

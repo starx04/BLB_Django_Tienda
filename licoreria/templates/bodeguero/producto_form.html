@@ -32,5 +32,94 @@
             </button>
         </div>
     </form>
+
+    <!-- API Verification Logic -->
+    <div id="api-suggestions" style="margin-top: 1rem; display: none;">
+        <h4 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--accent-primary);">
+            <i class="ph ph-magic-wand"></i> Sugerencias de API
+        </h4>
+        <div id="suggestions-list" style="display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0;">
+            <!-- Items injected here -->
+        </div>
+    </div>
+
+    <script>
+        const nombreInput = document.querySelector('[name=nombre]');
+        const categoriaSelect = document.querySelector('[name=categoria]');
+        const suggestionsContainer = document.getElementById('api-suggestions');
+        const suggestionsList = document.getElementById('suggestions-list');
+        const form = document.querySelector('form');
+
+        // Add hidden input for external image if not exists
+        if (!document.querySelector('[name=url_imagen_externa]')) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'url_imagen_externa';
+            form.appendChild(input);
+        }
+
+        let debounceTimer;
+
+        nombreInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(verifyProduct, 800);
+        });
+
+        categoriaSelect.addEventListener('change', verifyProduct);
+
+        async function verifyProduct() {
+            const query = nombreInput.value;
+            const categoryId = categoriaSelect.value;
+
+            if (query.length < 3) return;
+
+            const type = 'licores';
+
+            suggestionsContainer.style.display = 'block';
+            suggestionsList.innerHTML = '<div style="color: var(--text-secondary);">Verificando...</div>';
+
+            try {
+                const response = await fetch(`/api/${type}/?search=${query}`);
+                const data = await response.json();
+
+                suggestionsList.innerHTML = '';
+
+                if (data.results && data.results.length > 0) {
+                    data.results.slice(0, 5).forEach(item => {
+                        const div = document.createElement('div');
+                        const img = item.image || item.image_thumb_url || '/static/img/placeholder.png';
+                        div.style = "min-width: 150px; cursor: pointer; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid transparent; transition: all 0.2s;";
+                        div.innerHTML = `
+                            <img src="${img}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 5px;">
+                            <div style="font-weight: bold; font-size: 0.9rem;">${item.title || item.product_name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${item.brand || ''}</div>
+                        `;
+
+                        div.onclick = () => {
+                            // Select this item
+                            nombreInput.value = item.title || item.product_name;
+                            // Set external image url
+                            document.querySelector('[name=url_imagen_externa]').value = img;
+
+                            // Visual Feedback
+                            document.querySelectorAll('#suggestions-list > div').forEach(d => d.style.borderColor = 'transparent');
+                            div.style.borderColor = 'var(--accent-success)';
+                            div.style.background = 'rgba(0, 255, 157, 0.1)';
+
+                            // Optional: Auto-fill brand or other fields if we had them mapped
+                        };
+
+                        suggestionsList.appendChild(div);
+                    });
+                } else {
+                    suggestionsList.innerHTML = '<div style="color: var(--accent-danger);">No encontrado en API. Verifique ortografía.</div>';
+                }
+
+            } catch (e) {
+                console.error(e);
+                suggestionsList.innerHTML = '<div style="color: var(--text-secondary);">Error consultando API.</div>';
+            }
+        }
+    </script>
 </div>
 {% endblock %}

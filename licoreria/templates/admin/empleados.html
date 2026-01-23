@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}Empleados | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos para el Modal y Formulario */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: #1e293b;
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        width: 90%;
+        max-width: 600px;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #cbd5e1;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+        box-sizing: border-box;
+        transition: border-color 0.2s, background 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-actions">
+    <div>
+        <h2>Ver Personal Administrativo</h2>
+        <p style="color: #94a3b8; margin: 0;">Gestiona el equipo de trabajo</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button id="btnNuevoEmpleado" class="btn btn-primary">+ Agregar Personal</button>
+        <a href="{% url 'index' %}" class="btn btn-secondary">← Volver</a>
+    </div>
+</div>
+
+<!-- Mensajes -->
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Cargo</th>
+            <th>Rol</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for staff in staff_users %}
+        <tr>
+            <td><strong>{{ staff.empleados.nombre|default:staff.username }}</strong></td>
+            <td>{{ staff.username }}</td>
+            <td>{{ staff.email }}</td>
+            <td>{{ staff.empleados.cargo|default:"Administración de Sistema" }}</td>
+            <td>
+                {% if staff.is_superuser %}
+                <span class="tag"
+                    style="background: rgba(255, 215, 0, 0.2); color: #ffd700; border: 1px solid #ffd700;">⭐
+                    {{ staff.rol }}</span>
+                {% elif staff.rol == 'Sin rol' %}
+                <span style="color: var(--text-secondary);">Sin rol</span>
+                {% else %}
+                <span class="tag">{{ staff.rol }}</span>
+                {% endif %}
+            </td>
+            <td style="color: var(--accent-success); font-weight: bold;">
+                -
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="text-align: center; color: #64748b; padding: 3rem;">
+                No hay empleados registrados aún.
+                <br><br>
+                <button onclick="document.getElementById('modalEmpleado').style.display='block'"
+                    class="btn btn-secondary">Registrar el primero</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal de Registro -->
+<div id="modalEmpleado" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 style="margin-top: 0; color: var(--accent-color); margin-bottom: 1.5rem;">Agregar Nuevo Personal</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" name="nombre" id="nombre" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" name="username" id="username" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cargo">Cargo</label>
+                <input type="text" name="cargo" id="cargo" class="form-control"
+                    placeholder="Ej: Administrador, Supervisor, Bodeguero" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rol">Rol del Sistema</label>
+                <select name="rol" id="rol" class="form-control" required>
+                    <option value="">Seleccionar rol...</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Bodeguero">Bodeguero</option>
+                    <option value="Cliente">Cliente</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Personal</button>
+                <button type="button" class="btn btn-danger close-btn" style="flex: 1;">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Lógica del Modal
+    var modal = document.getElementById("modalEmpleado");
+    var btn = document.getElementById("btnNuevoEmpleado");
+    var span = document.getElementsByClassName("close")[0];
+    var closeBtn = document.getElementsByClassName("close-btn")[0];
+
+    btn.onclick = function () {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    closeBtn.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo General | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .catalog-header {
+        margin-bottom: 3rem;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .search-section {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 2rem;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        margin-bottom: 3rem;
+    }
+
+    .unified-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .item-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .item-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 243, 255, 0.1);
+    }
+
+    .item-img-container {
+        height: 200px;
+        position: relative;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .item-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+    }
+
+    .item-card:hover .item-img-container img {
+        transform: scale(1.1);
+    }
+
+    .type-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        z-index: 2;
+        backdrop-filter: blur(5px);
+    }
+
+    .badge-licor {
+        background: rgba(0, 243, 255, 0.2);
+        color: var(--accent-primary);
+        border: 1px solid var(--accent-primary);
+    }
+
+    .badge-coctel {
+        background: rgba(188, 19, 254, 0.2);
+        color: var(--accent-secondary);
+        border: 1px solid var(--accent-secondary);
+    }
+
+    .item-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-category {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .item-price {
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: var(--accent-success);
+    }
+
+    .add-btn {
+        padding: 0 1.5rem;
+        height: 45px;
+        border-radius: 12px;
+        background: var(--accent-primary);
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.3s;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .add-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px var(--accent-primary);
+    }
+
+    .stock-info {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .stock-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="catalog-header">
+    <h1 style="font-size: 3rem; font-weight: 900; margin: 0;">Catálogo <span
+            style="color: var(--accent-primary);">General</span></h1>
+    <p style="color: var(--text-secondary); font-size: 1.1rem;">Explora nuestra selección completa de licores premium y
+        cócteles artesanales.</p>
+</div>
+
+<div class="search-section">
+    <form method="GET" action="{% url 'catalogo_general' %}" style="display: flex; gap: 1rem;">
+        <div style="flex-grow: 1; position: relative;">
+            <i class="ph ph-magnifying-glass"
+                style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+            <input type="text" name="q" placeholder="Buscar por nombre, categoría o tipo..." class="form-control"
+                value="{{ query|default:'' }}" style="padding-left: 3rem;">
+        </div>
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        {% if query %}
+        <a href="{% url 'catalogo_general' %}" class="btn btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="unified-grid">
+    {# LISTAR LICORES #}
+    {% for produto in productos %}
+    <div class="item-card">
+        <span class="type-badge badge-licor">Licor</span>
+        <div class="item-img-container">
+            {% if produto.url_imagen_externa %}
+            <img src="{{ produto.url_imagen_externa }}" alt="{{ produto.nombre }}">
+            {% elif produto.imagen %}
+            <img src="{{ produto.imagen.url }}" alt="{{ produto.nombre }}">
+            {% else %}
+            <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.2;">
+                <i class="ph ph-beer-bottle" style="font-size: 4rem;"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div class="item-body">
+            <span class="item-category">{{ produto.categoria.nombre|default:"General" }}</span>
+            <h3 class="item-title">{{ produto.nombre }}</h3>
+
+            <div class="stock-info">
+                <div class="stock-dot"
+                    style="background: {% if produto.stock > 0 %}var(--accent-success){% else %}var(--accent-danger){% endif %}">
+                </div>
+                {% if produto.stock > 0 %}{{ produto.stock }} unidades{% else %}Agotado{% endif %}
+            </div>
+
+            <div class="item-footer">
+                <div class="item-price">${{ produto.precio|floatformat:2 }}</div>
+
+                {% if user.is_staff %}
+                <a href="{% url 'actualizar_stock' 'licor' produto.id %}" class="add-btn"
+                    style="background: transparent; border: 1px solid var(--accent-secondary); color: var(--accent-secondary); padding: 0 1rem; font-size: 0.8rem;"
+                    title="Editar Stock">
+                    <i class="ph ph-wrench"></i> Stock
+                </a>
+                {% endif %}
+
+                {% if produto.stock > 0 %}
+                <a href="{% url 'agregar_carrito' 'lic' produto.id %}" class="add-btn">
+                    <i class="ph ph-shopping-cart-simple"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {# LISTAR CÓCTELES #}
+    {% for coctel in cocteles %}
+    <div class="item-card">
+        <span class="type-badge badge-coctel">Cóctel</span>
+        <div class="item-img-container">
+            {% if coctel.imagen_url %}
+            <img src="{{ coctel.imagen_url }}" alt="{{ coctel.nombre }}">
+            {% else %}
+            <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.2;">
+                <i class="ph ph-martini" style="font-size: 4rem;"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div class="item-body">
+            <span class="item-category">{{ coctel.categoria|default:"Receta" }}</span>
+            <h3 class="item-title">{{ coctel.nombre }}</h3>
+
+            <div class="stock-info">
+                <div class="stock-dot"
+                    style="background: {% if coctel.stock > 0 %}var(--accent-success){% else %}var(--accent-danger){% endif %}">
+                </div>
+                {% if coctel.stock > 0 %}{{ coctel.stock }} disponibles{% else %}No disponible{% endif %}
+            </div>
+
+            <div class="item-footer">
+                <div class="item-price">${{ coctel.precio|floatformat:2 }}</div>
+
+                {% if user.is_staff %}
+                <a href="{% url 'actualizar_stock' 'coctel' coctel.id %}" class="add-btn"
+                    style="background: transparent; border: 1px solid var(--accent-secondary); color: var(--accent-secondary); padding: 0 1rem; font-size: 0.8rem;"
+                    title="Editar Stock">
+                    <i class="ph ph-wrench"></i> Stock
+                </a>
+                {% endif %}
+
+                {% if coctel.stock > 0 %}
+                <a href="{% url 'agregar_carrito' 'coc' coctel.id %}" class="add-btn"
+                    style="background: var(--accent-secondary); box-shadow: 0 0 15px rgba(188, 19, 254, 0.3);">
+                    <i class="ph ph-shopping-cart-simple"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not productos and not cocteles %}
+    <div
+        style="grid-column: 1 / -1; text-align: center; padding: 5rem; background: var(--bg-card); border-radius: 24px; border: 1px dashed var(--border);">
+        <i class="ph ph-ghost"
+            style="font-size: 5rem; color: var(--text-secondary); opacity: 0.3; margin-bottom: 1rem;"></i>
+        <h2 style="color: white;">No encontramos resultados</h2>
+        <p style="color: var(--text-secondary);">Prueba buscando con otros términos o limpia los filtros.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

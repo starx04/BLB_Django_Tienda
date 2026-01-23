@@ -1,0 +1,21 @@
+
+/* Global Fix for Select and Option Contrast in Dark Mode */
+select, 
+.form-select,
+select option {
+    background-color: #1a1a1a !important;
+    color: white !important;
+}
+
+/* Ensure dropdowns are not clipped */
+.results-grid, 
+.off-item, 
+.off-details {
+    overflow: visible !important;
+}
+
+.photo-preview img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}

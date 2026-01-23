@@ -1,12 +1,32 @@
 <div class="product-card">
     <div class="card-img">
         {% if producto.url_imagen_externa %}
-        <img src="{{ producto.url_imagen_externa }}" alt="{{ producto.nombre }}">
+        <img src="{{ producto.url_imagen_externa }}" alt="{{ producto.nombre }}"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div
+            style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; flex-direction: column; gap: 10px; background: linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(188, 19, 254, 0.05));">
+            <i class="ph ph-beer-bottle" style="font-size: 4rem; color: var(--accent-primary); opacity: 0.3;"></i>
+            <span
+                style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Sin
+                Imagen</span>
+        </div>
         {% elif producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div
+            style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; flex-direction: column; gap: 10px; background: linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(188, 19, 254, 0.05));">
+            <i class="ph ph-beer-bottle" style="font-size: 4rem; color: var(--accent-primary); opacity: 0.3;"></i>
+            <span
+                style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Sin
+                Imagen</span>
+        </div>
         {% else %}
-        <div style="text-align: center; color: var(--text-secondary);">
-            <i class="ph ph-image-broken" style="font-size: 3rem; opacity: 0.3;"></i>
+        <div
+            style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; background: linear-gradient(135deg, rgba(0, 243, 255, 0.05), rgba(188, 19, 254, 0.05));">
+            <i class="ph ph-beer-bottle" style="font-size: 4rem; color: var(--accent-primary); opacity: 0.3;"></i>
+            <span
+                style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Sin
+                Imagen</span>
         </div>
         {% endif %}
 
@@ -35,10 +55,19 @@
         <div class="card-footer">
             <span class="price">${{ producto.precio|floatformat:2 }}</span>
 
+            {% if user.is_staff %}
+            <a href="{% url 'actualizar_stock' 'licor' producto.id %}" class="add-btn"
+                style="width: 38px; height: 38px; border-color: var(--text-secondary); color: var(--text-secondary);"
+                title="Gestionar Stock">
+                <i class="ph ph-wrench"></i>
+            </a>
+            {% endif %}
+
             {% if producto.stock > 0 %}
-            <a href="{% url 'agregar_carrito' producto.id %}" class="add-btn" title="Agregar al carrito"
-                onclick="addToCart(event, {{ producto.id }})">
-                <i class="ph ph-plus-bold"></i>
+            <a href="{% url 'agregar_carrito' 'lic' producto.id %}" class="add-btn"
+                style="width: auto; padding: 0 1rem; gap: 8px; font-weight: 700; font-size: 0.8rem;"
+                title="Agregar al carrito">
+                <i class="ph ph-shopping-cart-simple"></i> Agregar
             </a>
             {% else %}
             <button class="add-btn" style="background: #475569; cursor: not-allowed;" disabled>

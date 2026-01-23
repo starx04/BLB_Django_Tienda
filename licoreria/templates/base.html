@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Licorería Neon{% endblock %}</title>
+    <title>{% block title %}STARAX{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -12,40 +12,68 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/main.css">
 
     <style>
         :root {
-            /* Neon Palette & Dark Theme */
+            /* --- DEFAULT THEME (Cyan/Purple) --- */
             --bg-body: #050505;
             --bg-sidebar: rgba(20, 20, 20, 0.6);
             --bg-card: rgba(30, 30, 30, 0.6);
-
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
 
-            /* NEON ACCENTS */
             --accent-primary: #00f3ff;
-            /* Cyan Neon */
             --accent-secondary: #bc13fe;
-            /* Purple Neon */
             --accent-success: #00ff9d;
             --accent-danger: #ff0055;
 
             --glow-primary: 0 0 20px rgba(0, 243, 255, 0.5);
             --glow-secondary: 0 0 20px rgba(188, 19, 254, 0.5);
 
+            /* --- FORM VARIABLES --- */
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus-border: var(--accent-primary);
+            --input-text: #ffffff;
+            --input-placeholder: #64748b;
+        }
+
+        /* --- THEME: FIRE (Red/Orange) --- */
+        [data-theme="fire"] {
+            --accent-primary: #ff5e00;
+            /* Bright Orange */
+            --accent-secondary: #ff0000;
+            /* Neon Red */
+            --glow-primary: 0 0 20px rgba(255, 94, 0, 0.5);
+            --glow-secondary: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        /* --- THEME: AURORA (Green/SkyBlue) --- */
+        [data-theme="aurora"] {
+            --accent-primary: #00ffcc;
+            /* Mint Green */
+            --accent-secondary: #00ccff;
+            /* Sky Blue */
+            --glow-primary: 0 0 20px rgba(0, 255, 204, 0.5);
+            --glow-secondary: 0 0 20px rgba(0, 204, 255, 0.5);
+        }
+
+        /* Common Vars */
+        :root {
             --border: rgba(255, 255, 255, 0.1);
             --glass-border: 1px solid rgba(255, 255, 255, 0.05);
             --glass-backdrop: blur(16px);
-
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-            /* Compatibility with legacy templates */
+            /* Legacy Compat */
             --accent: var(--accent-primary);
             --accent-hover: var(--accent-primary);
-            /* Fallback */
             --danger: var(--accent-danger);
             --success: var(--accent-success);
         }
@@ -60,16 +88,160 @@
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-body);
             background-image:
-                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08), transparent 25%);
+                radial-gradient(circle at 15% 50%, var(--accent-secondary), transparent 25%),
+                radial-gradient(circle at 85% 30%, var(--accent-primary), transparent 25%);
+            /* Opacity adjustment for background glow */
+            /* We use a pseudo-element or just rely on the alpha of the colors above if possible. 
+               But gradients don't take alpha channels of vars easily without calc. 
+               Let's trust the vars have enough context or browser handles it.
+               Actually, for radial gradients, using raw colors is better but we want dynamic.
+               We'll stick to vars, hopefully browser support is good. To be safe let's assume vars work.
+            */
+            background-size: 200% 200%;
+            /* Subtle movement if enabled */
             color: var(--text-primary);
             margin: 0;
             padding: 0;
             display: flex;
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background-image 0.5s ease;
         }
 
+        /* Sidebar, buttons etc will inherit vars automatically */
+
+        /* ... [Rest of CSS unchanged] ... */
+
+        /* --- THEME TOGGLE BUTTON --- */
+        .theme-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2000;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 0 20px var(--accent-primary);
+        }
+
+        .theme-menu {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-menu.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .theme-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .theme-option:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-option.active {
+            border-color: white;
+            box-shadow: 0 0 10px white;
+        }
+
+        /* Categorías de Menú */
+        .nav-category {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #64748b;
+            font-weight: 700;
+            margin: 1.5rem 0 0.5rem 1rem;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-category:first-of-type {
+            margin-top: 0;
+        }
+    </style>
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+<body data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+
+    <!-- THEME SWITCHER UI -->
+    <div class="theme-toggle-btn" onclick="toggleThemeMenu()">
+        <i class="ph ph-paint-brush-broad"></i>
+    </div>
+
+    <div class="theme-menu" id="themeMenu">
+        <div class="theme-option" onclick="setTheme('default')" title="Neon Cyan/Purple"
+            style="background: linear-gradient(45deg, #00f3ff, #bc13fe);"></div>
+        <div class="theme-option" onclick="setTheme('fire')" title="Neon Fire (Red/Orange)"
+            style="background: linear-gradient(45deg, #ff5e00, #ff0000);"></div>
+        <div class="theme-option" onclick="setTheme('aurora')" title="Neon Aurora (Green/Sky)"
+            style="background: linear-gradient(45deg, #00ffcc, #00ccff);"></div>
+    </div>
+
+    <script>
+        function toggleThemeMenu() {
+            document.getElementById('themeMenu').classList.toggle('active');
+        }
+
+        function setTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('siteTheme', themeName);
+            // Highlight active
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            // Find the one clicked is tricky without passing 'this', but visual feedback is enough or we rely on logic
+            toggleThemeMenu();
+        }
+
+        // Apply saved theme on load
+        const savedTheme = localStorage.getItem('siteTheme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+
+
+
+    <style>
         /* --- SIDEBAR GLASSMORPHISM --- */
         .sidebar {
             width: 280px;
@@ -83,6 +255,7 @@
             height: 100vh;
             z-index: 1000;
             box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
         }
 
         .brand {
@@ -163,6 +336,66 @@
         .nav-item a.active i {
             color: var(--accent-primary);
             filter: drop-shadow(0 0 8px var(--accent-primary));
+        }
+
+        /* --- DROPDOWNS --- */
+        .nav-dropdown {
+            cursor: pointer;
+        }
+
+        .nav-dropdown>a {
+            justify-content: space-between;
+        }
+
+        .nav-dropdown.active>a {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .dropdown-caret {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-dropdown.active .dropdown-caret {
+            transform: rotate(180deg);
+        }
+
+        .nav-submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 12px 12px;
+        }
+
+        .nav-dropdown.active .nav-submenu {
+            max-height: 250px;
+            /* Reduced to show scrollbar easier */
+            overflow-y: auto;
+            transition: max-height 0.4s ease-in-out;
+            padding-bottom: 0.5rem;
+        }
+
+        .nav-submenu li a {
+            padding: 10px 18px 10px 50px;
+            font-size: 0.85rem;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-submenu li a::before {
+            left: 35px;
+            width: 3px;
+        }
+
+        .nav-submenu li a:hover {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--accent-primary);
         }
 
         /* --- MAIN CONTENT & HEADER --- */
@@ -395,93 +628,393 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #d946ef;
         }
+
+        /* --- FORM STYLING (DARK MODE FIXES) --- */
+        .form-control,
+        .form-select,
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        input[type="date"],
+        input[type="url"],
+        select,
+        textarea {
+            width: 100%;
+            background-color: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            border-radius: 8px !important;
+            color: var(--input-text) !important;
+            padding: 12px 16px !important;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .form-select,
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.25rem;
+            padding-right: 3rem !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 2px rgba(0, 243, 255, 0.2), 0 0 15px rgba(0, 243, 255, 0.3) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Specific fix for dropdown options visibility */
+        select option {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            padding: 10px;
+        }
+
+        .form-label,
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        ::placeholder {
+            color: var(--input-placeholder) !important;
+            opacity: 1;
+        }
+
+        /* --- GLOBAL MODAL SYSTEM --- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            padding: 2.5rem;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .modal-close:hover {
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        [id*="Modal"]>div {
+            overflow: visible !important;
+            position: relative;
+        }
+
+        /* Checkbox customization */
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            -webkit-appearance: checkbox;
+            /* Keep standard checkbox for reliability but style it */
+        }
     </style>
-    {% block extra_css %}
-    {% endblock %}
+    </head>
 
-</head>
+    <body data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="{% url 'index' %}" class="brand">
+                <i class="ph ph-brandy"></i>
+                <span>STARAX</span>
+            </a>
 
-<body data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <a href="{% url 'index' %}" class="brand">
-            <i class="ph ph-brandy"></i>
-            <span>Licorería</span>
-        </a>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'index' %}"
+                        class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                        <i class="ph ph-house"></i> Inicio
+                    </a>
+                </li>
 
-        <ul class="nav-menu">
-            {% if user.is_authenticated %}
-            <li class="nav-item">
-                <a href="{% url 'index' %}"
-                    class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
-                    <i class="ph ph-squares-four"></i> Inicio
-                </a>
-            </li>
-            {% endif %}
+                {# SECCIÓN: CATÁLOGOS PÚBLICOS (Visible para todos) #}
+                <div class="nav-category">Inspiración & Catálogos</div>
 
-            <li class="nav-item">
-                <a href="{% url 'productos' %}" class="{% if 'productos' in request.path %}active{% endif %}">
-                    <i class="ph ph-bottle"></i> Ver Licores
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'snacks' %}" class="{% if 'snacks' in request.path %}active{% endif %}">
-                    <i class="ph ph-cookie"></i> Ver Snacks
-                </a>
-            </li>
+                <li class="nav-item">
+                    <a href="{% url 'catalogo_general' %}" 
+                       class="{% if request.resolver_match.url_name == 'catalogo_general' %}active{% endif %}">
+                        <i class="ph ph-squares-four"></i> Todo el Catálogo
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'productos' %}"
+                        class="{% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+                        <i class="ph ph-wine"></i> Licores
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'cocteles_catalogo' %}"
+                        class="{% if request.resolver_match.url_name == 'cocteles_catalogo' %}active{% endif %}">
+                        <i class="ph ph-martini"></i> Mundo Cócteles
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'solicitar_recompensa' %}"
+                        class="{% if request.resolver_match.url_name == 'solicitar_recompensa' %}active{% endif %}">
+                        <i class="ph ph-gift"></i> Catálogo de Recompensas
+                    </a>
+                </li>
 
-            {% if user.is_authenticated %}
-            {% if user.groups.all.0.name == 'Cliente' %}
-            <li class="nav-item">
-                <a href="{% url 'mis_compras' %}" class="{% if 'compras' in request.path %}active{% endif %}">
-                    <i class="ph ph-shopping-cart"></i> Mis Compras
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'mis_prestamos' %}" class="{% if 'prestamos' in request.path %}active{% endif %}">
-                    <i class="ph ph-handshake"></i> Mis Préstamos
-                </a>
-            </li>
-            {% endif %}
+                {% if user.is_authenticated %}
 
-            {% if user.groups.all.0.name == 'Bodeguero' or user.is_superuser %}
-            <li class="nav-item">
-                <a href="{% url 'gestion_productos' %}"
-                    class="{% if 'gestion/productos' in request.path %}active{% endif %}">
-                    <i class="ph ph-package"></i> Gestión Productos
-                </a>
-            </li>
-            {% endif %}
+                {# SECCIÓN: OPERACIONES (Visible para todos los usuarios autenticados) #}
+                <div class="nav-category">Operaciones</div>
 
-            {% if user.groups.all.0.name == 'Supervisor' or user.is_superuser %}
-            <li class="nav-item">
-                <a href="{% url 'gestion_prestamos' %}"
-                    class="{% if 'gestion/prestamos' in request.path %}active{% endif %}">
-                    <i class="ph ph-hand-coins"></i> Gestión Préstamos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'gestion_recompensas' %}"
-                    class="{% if 'recompensas' in request.path %}active{% endif %}">
-                    <i class="ph ph-gift"></i> Recompensas/Regalos
-                </a>
-            </li>
-            {% endif %}
 
-            {% if user.groups.all.0.name == 'Administrador' or user.is_superuser %}
-            <li class="nav-item">
-                <a href="{% url 'crear_empleado' %}" class="{% if 'empleado' in request.path %}active{% endif %}">
-                    <i class="ph ph-user-plus"></i> Crear Personal
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'clientes' %}" class="{% if 'clientes' in request.path %}active{% endif %}">
-                    <i class="ph ph-users"></i> Ver Clientes
-                </a>
-            </li>
-            {% endif %}
-            {% else %}
-            <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <!-- DROPDOWN: VENTAS -->
+                <li
+                    class="nav-item nav-dropdown {% if 'ordenes' in request.path or 'ver_carrito' in request.path %}active{% endif %}">
+                    <a href="#">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="ph ph-shopping-cart"></i> Ventas
+                        </div>
+                        <i class="ph ph-caret-down dropdown-caret"></i>
+                    </a>
+                    <ul class="nav-submenu">
+
+
+
+                        <li>
+                            <a href="{% url 'ver_carrito' %}"
+                                class="{% if 'carrito' in request.path %}active{% endif %}">
+                                <i class="ph ph-shopping-bag"></i> Carrito / Nueva Venta
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- DROPDOWN: GLOBAL (Solo Staff/Admin) -->
+                {% if user.is_staff or user.is_superuser %}
+                <li
+                    class="nav-item nav-dropdown {% if 'ordenes' in request.path or 'gestion/recompensas' in request.path or 'gestion/prestamos' in request.path or 'gestion/multas' in request.path %}active{% endif %}">
+                    <a href="#">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="ph ph-globe"></i> Global
+                        </div>
+                        <i class="ph ph-caret-down dropdown-caret"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li>
+                            <a href="{% url 'ordenes' %}"
+                                class="{% if request.resolver_match.url_name == 'ordenes' %}active{% endif %}">
+                                <i class="ph ph-list-numbers"></i> Ver Órdenes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'ver_solicitudes_global' %}"
+                                class="{% if request.resolver_match.url_name == 'ver_solicitudes_global' %}active{% endif %}">
+                                <i class="ph ph-clock-clockwise"></i> Ver Solicitudes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'ver_canjes_global' %}"
+                                class="{% if request.resolver_match.url_name == 'ver_canjes_global' %}active{% endif %}">
+                                <i class="ph ph-ticket"></i> Ver Canjes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'ver_prestamos_global' %}"
+                                class="{% if request.resolver_match.url_name == 'ver_prestamos_global' %}active{% endif %}">
+                                <i class="ph ph-bank"></i> Ver Préstamos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'ver_multas_global' %}"
+                                class="{% if request.resolver_match.url_name == 'ver_multas_global' %}active{% endif %}">
+                                <i class="ph ph-gavel"></i> Ver Multas
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% endif %}
+
+
+                {# SECCIÓN: INVENTARIO (Admin o Bodeguero - GESTIÓN SOLAMENTE) #}
+                {% if user.is_superuser or user.groups.all.0.name == 'Bodeguero' or user.groups.all.0.name == 'Administrador' %}
+                <div class="nav-category">Gestión de Inventario</div>
+
+                <!-- DROPDOWN: LICORES -->
+                <li
+                    class="nav-item nav-dropdown {% if 'gestion/productos' in request.path or 'importar-licores' in request.path %}active{% endif %}">
+                    <a href="#">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="ph ph-wine"></i> Licores Stock
+                        </div>
+                        <i class="ph ph-caret-down dropdown-caret"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li>
+                            <a href="{% url 'gestion_productos' %}"
+                                class="{% if request.resolver_match.url_name == 'gestion_productos' %}active{% endif %}">
+                                <i class="ph ph-pencil-line"></i> Gestión de Stock
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'importar_licores' %}"
+                                class="{% if 'importar-licores' in request.path %}active{% endif %}">
+                                <i class="ph ph-download-simple"></i> Importar (OFF)
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- DROPDOWN: CÓCTELES -->
+                <li
+                    class="nav-item nav-dropdown {% if 'gestion/cocteles' in request.path or 'importar-cocteles' in request.path %}active{% endif %}">
+                    <a href="#">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="ph ph-martini"></i> Cócteles Stock
+                        </div>
+                        <i class="ph ph-caret-down dropdown-caret"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li>
+                            <a href="{% url 'gestion_cocteles' %}"
+                                class="{% if request.resolver_match.url_name == 'gestion_cocteles' %}active{% endif %}">
+                                <i class="ph ph-database"></i> Gestión de Stock
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'importar_cocteles' %}"
+                                class="{% if 'importar-cocteles' in request.path %}active{% endif %}">
+                                <i class="ph ph-cloud-arrow-down"></i> Importar API
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% endif %}
+
+                {# SECCIÓN: ADMINISTRACIÓN (Solo Admin) #}
+                {% if user.is_superuser or user.groups.all.0.name == 'Administrador' %}
+                <div class="nav-category">Administración</div>
+
+                <li
+                    class="nav-item nav-dropdown {% if 'clientes' in request.path or 'personal' in request.path %}active{% endif %}">
+                    <a href="#">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <i class="ph ph-users-three"></i> Usuarios
+                        </div>
+                        <i class="ph ph-caret-down dropdown-caret"></i>
+                    </a>
+                    <ul class="nav-submenu">
+                        <li>
+                            <a href="{% url 'clientes' %}" class="{% if 'clientes' in request.path %}active{% endif %}">
+                                <i class="ph ph-user-list"></i> Ver Clientes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'registro_empleado' %}"
+                                class="{% if 'personal' in request.path %}active{% endif %}">
+                                <i class="ph ph-identification-card"></i> Empleados
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'auditoria_logs' %}" class="{% if 'logs' in request.path %}active{% endif %}">
+                        <i class="ph ph-scroll"></i> Auditoría (Logs)
+                    </a>
+                </li>
+                {% endif %}
+
+                {# SECCIÓN: PERSONAL (Mis cosas para Staff y Clientes) #}
+                <div class="nav-category">Mi Perfil Personal</div>
+
+                <li class="nav-item">
+                    <a href="{% url 'panel_fidelidad' %}"
+                        class="{% if 'panel-fidelidad' in request.path %}active{% endif %}">
+                        <i class="ph ph-sparkle"></i> Mi Fidelidad
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'mis_compras' %}" class="{% if 'mis-compras' in request.path %}active{% endif %}">
+                        <i class="ph ph-bag"></i> Mis Órdenes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'mis_solicitudes' %}"
+                        class="{% if 'mis-solicitudes' in request.path %}active{% endif %}">
+                        <i class="ph ph-clock-clockwise"></i> Mis Solicitudes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'mis_prestamos' %}"
+                        class="{% if 'mis-prestamos' in request.path %}active{% endif %}">
+                        <i class="ph ph-hand-coins"></i> Mis Préstamos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'mis_multas' %}"
+                        class="{% if 'mis-multas' in request.path %}active{% endif %}">
+                        <i class="ph ph-warning-octagon"></i> Mis Multas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'mis_registros_canjes' %}"
+                        class="{% if 'mis-registros-canjes' in request.path %}active{% endif %}">
+                        <i class="ph ph-ticket"></i> Mis Canjes
+                    </a>
+                </li>
+
+                {% else %}
+                {# SECCIÓN: INVITADO #}
+                <div class="nav-category">Acceso</div>
                 <li class="nav-item">
                     <a href="{% url 'login' %}" style="color: var(--accent-primary);">
                         <i class="ph ph-sign-in"></i> Iniciar Sesión
@@ -492,177 +1025,242 @@
                         <i class="ph ph-user-plus"></i> Registrarse
                     </a>
                 </li>
+                {% endif %}
+            </ul>
+
+
+            <!-- User Profile Section -->
+            {% if user.is_authenticated %}
+            <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0, 243, 255, 0.05); border-radius: 12px; margin-bottom: 0.5rem; border: 1px solid rgba(0, 243, 255, 0.1);">
+                    <div
+                        style="width: 40px; height: 40px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #000;">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div
+                            style="font-weight: 600; font-size: 0.9rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ user.username }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                            Empleado
+                        </div>
+                    </div>
+                </div>
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn"
+                        style="background:none; border:none; padding:0; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:15px; width:100%;">
+                        <i class="ph ph-sign-out"></i> Cerrar Sesión
+                    </button>
+                </form>
             </div>
             {% endif %}
-        </ul>
+        </nav>
 
-
-        <!-- User Profile Section -->
-        {% if user.is_authenticated %}
-        <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-            <div
-                style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0, 243, 255, 0.05); border-radius: 12px; margin-bottom: 0.5rem; border: 1px solid rgba(0, 243, 255, 0.1);">
-                <div
-                    style="width: 40px; height: 40px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #000;">
-                    {{ user.username|slice:":1"|upper }}
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <header>
+                <div class="page-title">
+                    <h2>{% block header_title %}Dashboard{% endblock %}</h2>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div
-                        style="font-weight: 600; font-size: 0.9rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ user.username }}
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                        Empleado
-                    </div>
-                </div>
-            </div>
-            <a href="{% url 'logout' %}"
-                style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; color: var(--accent-danger); text-decoration: none; border-radius: 8px; transition: background 0.2s; font-weight: 500; border: 1px solid transparent;">
-                <i class="ph ph-sign-out"></i> Cerrar Sesión
-            </a>
-        </div>
-        {% endif %}
-    </nav>
 
-    <!-- Main Content Wrapper -->
-    <div class="main-wrapper">
-        <header>
-            <div class="page-title">
-                <h2>{% block header_title %}Dashboard{% endblock %}</h2>
-            </div>
-
-            <div class="header-actions">
-                <a href="{% url 'ver_carrito' %}" class="cart-btn" title="Ver Carrito">
-                    <i class="ph ph-shopping-bag"></i>
-                    {% if request.session.cart %}
-                    <span class="cart-badge">{{ request.session.cart.values|add:"0" }}</span>
-                    {% endif %}
-                </a>
-                <!-- Avatar de usuario -->
-                {% if user.is_authenticated %}
-                <div style="width: 35px; height: 35px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: help; color: #000; box-shadow: 0 0 10px var(--accent-primary);"
-                    title="{{ user.username }}">
-                    {{ user.username|slice:":1"|upper }}
-                </div>
-                {% else %}
-                <div style="display: flex; gap: 10px;">
-                    <a href="{% url 'login' %}"
-                        style="font-size: 0.8rem; text-decoration: none; color: white; padding: 6px 12px; border: 1px solid var(--accent-primary); border-radius: 20px;">
-                        Login
+                <div class="header-actions">
+                    <a href="{% url 'ver_carrito' %}" class="cart-btn" title="Ver Carrito">
+                        <i class="ph ph-shopping-bag"></i>
+                        {% if request.session.cart %}
+                        <span class="cart-badge">{{ request.session.cart|length }}</span>
+                        {% endif %}
                     </a>
+                    <!-- Avatar de usuario -->
+                    {% if user.is_authenticated %}
+                    <div style="width: 35px; height: 35px; background: var(--accent-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: help; color: #000; box-shadow: 0 0 10px var(--accent-primary);"
+                        title="{{ user.username }}">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    {% else %}
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'login' %}"
+                            style="font-size: 0.8rem; text-decoration: none; color: white; padding: 6px 12px; border: 1px solid var(--accent-primary); border-radius: 20px;">
+                            Login
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-        </header>
+            </header>
 
-        <main class="content-container">
-            {% block content %}
-            {% endblock %}
-        </main>
-    </div>
+            <!-- Toast Notifications Container Removed (Using Toastify JS below) -->
 
-    <!-- Modal Edad -->
-    <div id="ageModal"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;">
-        <div
-            style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; text-align: center; max-width: 400px; border: 1px solid var(--border);">
-            <i class="ph ph-warning-circle"
-                style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1rem; filter: drop-shadow(0 0 10px var(--accent-primary));"></i>
-            <h2 style="margin-top: 0;">Verificación Requerida</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">¿Eres mayor de 18 años?</p>
-            <div style="display: flex; gap: 1rem; justify-content: center;">
-                <button onclick="verificarEdad(true)" class="btn btn-primary">Sí, entrar</button>
-                <button onclick="verificarEdad(false)" class="btn btn-secondary">No, salir</button>
+            <main class="content-container">
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+
+        <!-- Modal Edad -->
+        <div id="ageModal"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center;">
+            <div
+                style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; text-align: center; max-width: 400px; border: 1px solid var(--border);">
+                <i class="ph ph-warning-circle"
+                    style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1rem; filter: drop-shadow(0 0 10px var(--accent-primary));"></i>
+                <h2 style="margin-top: 0;">Verificación Requerida</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">¿Eres mayor de 18 años?</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="verificarEdad(true)" class="btn btn-primary">Sí, entrar</button>
+                    <button onclick="verificarEdad(false)" class="btn btn-secondary">No, salir</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toastify JS -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+        <!-- Toastify JS -->
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-    <script>
-        function verificarEdad(esMayor) {
-            if (esMayor) {
-                localStorage.setItem('esMayorEdad', 'true');
-                document.getElementById('ageModal').style.display = 'none';
-            } else {
-                location.href = "https://google.com";
+        <script>
+            function verificarEdad(esMayor) {
+                if (esMayor) {
+                    localStorage.setItem('esMayorEdad', 'true');
+                    document.getElementById('ageModal').style.display = 'none';
+                } else {
+                    location.href = "https://google.com";
+                }
             }
-        }
-        if (!localStorage.getItem('esMayorEdad')) {
-            document.getElementById('ageModal').style.display = 'flex';
-        }
-
-        // AJAX Add to Cart
-        const isAuthenticated = document.body.dataset.authenticated === 'true';
-
-        async function addToCart(event, productoId) {
-            event.preventDefault();
-
-            /* 
-            if (!isAuthenticated) {
-                // Logica eliminada: Ahora permitimos agregar sin login
+            if (!localStorage.getItem('esMayorEdad')) {
+                document.getElementById('ageModal').style.display = 'flex';
             }
-            */
 
+            // --- DJANGO MESSAGES TOASTS ---
+            {% if messages %}
+            {% for message in messages %}
+            Toastify({
+                text: `{% if message.tags == 'success' %}<i class='ph ph-check-circle' style='font-size: 1.5rem; color: var(--accent-success);'></i>{% elif message.tags == 'error' %}<i class='ph ph-warning-octagon' style='font-size: 1.5rem; color: var(--accent-danger);'></i>{% elif message.tags == 'warning' %}<i class='ph ph-warning' style='font-size: 1.5rem; color: #f59e0b;'></i>{% else %}<i class='ph ph-info' style='font-size: 1.5rem; color: var(--accent-primary);'></i>{% endif %} <span style="margin-left: 12px; font-weight: 600; font-size: 1rem;">{{ message|escapejs }}</span>`,
+                duration: 4000,
+                close: true,
+                gravity: "top",
+                position: "right",
+                escapeMarkup: false, // Permite HTML dentro del toast
+                stopOnFocus: true,
+                style: {
+                    background: "rgba(15, 23, 42, 0.95)", // Dark Blue-ish background
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderLeft: "6px solid {% if message.tags == 'error' %}var(--accent-danger){% elif message.tags == 'warning' %}#f59e0b{% elif message.tags == 'success' %}var(--accent-success){% else %}var(--accent-primary){% endif %}",
+                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.8), 0 0 15px {% if message.tags == 'error' %}rgba(239, 68, 68, 0.3){% elif message.tags == 'success' %}rgba(16, 185, 129, 0.3){% else %}rgba(0, 243, 255, 0.3){% endif %}",
+                    color: "#f8fafc",
+                    borderRadius: "12px",
+                    padding: "16px 24px",
+                    fontFamily: "'Outfit', sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    minWidth: "300px",
+                }
+            }).showToast();
+            {% endfor %}
+            {% endif %}
 
-            const btn = event.currentTarget;
+            // Dropdown Sidebar Logic
+            document.querySelectorAll('.nav-dropdown > a').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const parent = toggle.parentElement;
+                    const isActive = parent.classList.contains('active');
 
-            // Animación simple de click
-            btn.style.transform = "scale(0.95)";
-            setTimeout(() => btn.style.transform = "scale(1)", 150);
+                    // Close other dropdowns (optional)
+                    // document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('active'));
 
-            try {
-                const response = await fetch(`/agregar/${productoId}/`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                    if (!isActive) {
+                        parent.classList.add('active');
+                    } else {
+                        parent.classList.remove('active');
                     }
                 });
+            });
 
-                if (response.ok) {
-                    const data = await response.json();
+            // AJAX Add to Cart
+            const isAuthenticated = document.body.dataset.authenticated === 'true';
 
-                    // Actualizar badge del carrito
-                    const badge = document.querySelector('.cart-badge');
-                    if (badge) {
-                        badge.textContent = data.cart_count;
-                        // Pequeña animación del badge
-                        badge.style.transform = "scale(1.2)";
-                        setTimeout(() => badge.style.transform = "scale(1)", 200);
+            async function addToCart(event, tipo, item_id) {
+                event.preventDefault();
+
+                const btn = event.currentTarget;
+
+                // Animación simple de click
+                btn.style.transform = "scale(0.95)";
+                setTimeout(() => btn.style.transform = "scale(1)", 150);
+
+                try {
+                    const response = await fetch(`/agregar/${tipo}/${item_id}/`, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // Actualizar badge del carrito
+                        const badge = document.querySelector('.cart-badge');
+                        if (badge) {
+                            badge.textContent = data.cart_count;
+                            badge.style.transform = "scale(1.2)";
+                            setTimeout(() => {
+                                badge.style.transform = "scale(1)";
+                                // Redireccionar al carrito después de un breve delay para ver la animación si es deseado
+                                // Pero el usuario pidió que redireccione, así que lo hacemos de inmediato o casi.
+                                window.location.href = "/carrito/";
+                            }, 150);
+                        } else {
+                            // Redireccionar al carrito si es el primer item
+                            window.location.href = "/carrito/";
+                        }
+
+                        // Mostrar Toast
+                        Toastify({
+                            text: "Producto agregado al carrito 🛒",
+                            duration: 3000,
+                            gravity: "bottom",
+                            position: "right",
+                            style: {
+                                background: "var(--accent-success)",
+                                borderRadius: "10px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                            }
+                        }).showToast();
+
                     } else {
-                        // Si no existía badge (count era 0), recargar es lo más fácil para que aparezca, 
-                        // pero idealmente deberíamos inyectarlo. Por simplicidad, si es la primera, solo notificamos.
-                        const cartBtn = document.querySelector('.cart-btn');
-                        if (cartBtn && data.cart_count > 0) {
-                            const newBadge = document.createElement('span');
-                            newBadge.className = 'cart-badge';
-                            newBadge.textContent = data.cart_count;
-                            cartBtn.appendChild(newBadge);
-                        }
+                        console.error('Error al agregar');
                     }
-
-                    // Mostrar Toast
-                    Toastify({
-                        text: "Producto agregado al carrito 🛒",
-                        duration: 3000,
-                        gravity: "bottom",
-                        position: "right",
-                        style: {
-                            background: "var(--accent-success)",
-                            borderRadius: "10px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
-                        }
-                    }).showToast();
-
-                } else {
-                    console.error('Error al agregar');
+                } catch (error) {
+                    console.error('Error de red:', error);
                 }
-            } catch (error) {
-                console.error('Error de red:', error);
             }
-        }
-    </script>
-</body>
+
+            // Global Modal Helpers
+            function openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function (event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        </script>
+    </body>
 
 </html>

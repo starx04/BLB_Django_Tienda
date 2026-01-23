@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Fidelidad | BLB Tienda{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fidelity-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+
+    .history-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .history-table thead th {
+        padding: 1rem;
+        text-align: left;
+        color: var(--accent-primary);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .history-table tbody tr {
+        background: rgba(255, 255, 255, 0.03);
+        transition: all 0.3s ease;
+    }
+
+    .history-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateX(5px);
+    }
+
+    .history-table tbody td {
+        padding: 1.2rem 1rem;
+    }
+
+    .history-table tbody tr td:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    .history-table tbody tr td:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    .points-badge {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: #000;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fidelity-container">
+    <!-- Header -->
+    <!-- Header Rank & Progress -->
+    <div style="text-align: center; margin-bottom: 3rem; position: relative;">
+        <!-- Decorative Icon (No Levels) -->
+        <div style="margin-bottom: 1.5rem;">
+            <div
+                style="background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); width: 80px; height: 80px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);">
+                <i class="ph ph-crown"
+                    style="font-size: 2.5rem; color: #ffd700; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));"></i>
+            </div>
+        </div>
+
+        <h1 style="font-size: 2.5rem; font-weight: 900; margin: 0 0 0.5rem 0;">
+            Panel de <span style="color: var(--accent-primary);">Fidelidad</span>
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">
+            Hola, <strong style="color: white;">{{ cliente.nombre }}</strong> 👋
+        </p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <!-- Current Points -->
+        <div class="stat-card" style="border-color: rgba(0, 243, 255, 0.3);">
+            <div class="stat-icon" style="color: var(--accent-primary); text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);">
+                <i class="ph ph-coins"></i>
+            </div>
+            <div class="stat-value" style="color: var(--accent-primary);">
+                {{ cliente.puntos_actuales_calculados }}
+            </div>
+            <div class="stat-label">Puntos Actuales</div>
+        </div>
+
+        <!-- Total Spent -->
+        <div class="stat-card" style="border-color: rgba(16, 185, 129, 0.3);">
+            <div class="stat-icon" style="color: var(--accent-success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);">
+                <i class="ph ph-currency-dollar"></i>
+            </div>
+            <div class="stat-value" style="color: var(--accent-success);">
+                ${{ total_gastado|floatformat:2 }}
+            </div>
+            <div class="stat-label">Total Gastado</div>
+        </div>
+
+        <!-- Credit Limit -->
+        <div class="stat-card" style="border-color: rgba(188, 19, 254, 0.3);">
+            <div class="stat-icon"
+                style="color: var(--accent-secondary); text-shadow: 0 0 20px rgba(188, 19, 254, 0.5);">
+                <i class="ph ph-credit-card"></i>
+            </div>
+            <div class="stat-value" style="color: var(--accent-secondary);">
+                ${{ cliente.limite_credito_calculado|floatformat:2 }}
+            </div>
+            <div class="stat-label">Límite de Crédito</div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="stat-card" style="border-color: rgba(251, 191, 36, 0.3);">
+            <div class="stat-icon" style="color: #fbbf24; text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);">
+                <i class="ph ph-shopping-bag"></i>
+            </div>
+            <div class="stat-value" style="color: #fbbf24;">
+                {{ total_ordenes }}
+            </div>
+            <div class="stat-label">Órdenes Totales</div>
+        </div>
+    </div>
+
+    <!-- Points History -->
+    <div class="history-card">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border);">
+            <h2 style="margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--accent-primary);">
+                <i class="ph ph-clock-clockwise"></i> Historial de Puntos
+            </h2>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                <i class="ph ph-info"></i> 1 punto = $10 gastados
+            </div>
+        </div>
+
+        {% if historial_ordenes %}
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Orden</th>
+                    <th>Fecha</th>
+                    <th style="text-align: right;">Monto</th>
+                    <th style="text-align: center;">Puntos Ganados</th>
+                    <th style="text-align: center;">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for orden in historial_ordenes %}
+                <tr>
+                    <td>
+                        <a href="{% url 'detalle_orden' orden.id %}"
+                            style="color: var(--accent-primary); text-decoration: none; font-weight: 700; font-family: monospace;">
+                            #{{ orden.codigo_orden }}
+                        </a>
+                    </td>
+                    <td style="color: var(--text-secondary);">
+                        <i class="ph ph-calendar"></i> {{ orden.fecha|date:"d/m/Y" }}
+                        <div style="font-size: 0.75rem; margin-top: 3px;">
+                            {{ orden.fecha|date:"H:i" }}
+                        </div>
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: var(--accent-success);">
+                        ${{ orden.total|floatformat:2 }}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if orden.estado == 'PAGD' %}
+                        <span class="points-badge">
+                            +{{ orden.puntos_asignados|default:0 }} pts
+                        </span>
+                        {% else %}
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                            Pendiente
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if orden.estado == 'PAGD' %}
+                        <span style="color: #10b981; font-weight: 700; font-size: 0.85rem;">
+                            <i class="ph ph-seal-check"></i> PAGADA
+                        </span>
+                        {% elif orden.estado == 'PREST' %}
+                        <span style="color: #3b82f6; font-weight: 700; font-size: 0.85rem;">
+                            <i class="ph ph-hand-shake"></i> PRÉSTAMO
+                        </span>
+                        {% elif orden.estado == 'SOLI' %}
+                        <span style="color: #fbbf24; font-weight: 700; font-size: 0.85rem;">
+                            <i class="ph ph-clock-countdown"></i> SOLICITUD
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+            <i class="ph ph-shopping-cart-simple" style="font-size: 4rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+            <h3 style="margin: 0 0 0.5rem 0;">No hay historial de puntos</h3>
+            <p style="margin: 0;">Realiza tu primera compra para comenzar a acumular puntos.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Info Cards -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+        <!-- How it works -->
+        <div
+            style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 16px; padding: 1.5rem;">
+            <h3 style="margin: 0 0 1rem 0; color: var(--accent-primary); font-size: 1.1rem;">
+                <i class="ph ph-question"></i> ¿Cómo funciona?
+            </h3>
+            <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
+                <li>Ganas <strong style="color: white;">1 punto</strong> por cada <strong
+                        style="color: white;">$10</strong> que gastes</li>
+                <li>Los puntos se acumulan automáticamente al pagar</li>
+                <li>Usa tus puntos para canjear recompensas</li>
+                <li>Tu límite de crédito aumenta con cada compra</li>
+            </ul>
+        </div>
+
+        <!-- Benefits -->
+        <div
+            style="background: rgba(188, 19, 254, 0.05); border: 1px solid rgba(188, 19, 254, 0.2); border-radius: 16px; padding: 1.5rem;">
+            <h3 style="margin: 0 0 1rem 0; color: var(--accent-secondary); font-size: 1.1rem;">
+                <i class="ph ph-gift"></i> Beneficios
+            </h3>
+            <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
+                <li>Acceso a <strong style="color: white;">recompensas exclusivas</strong></li>
+                <li>Incremento automático de <strong style="color: white;">crédito</strong></li>
+                <li>Prioridad en <strong style="color: white;">nuevos productos</strong></li>
+                <li>Descuentos especiales para <strong style="color: white;">clientes VIP</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <div style="text-align: center; margin-top: 3rem;">
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'solicitar_recompensa' %}" class="btn btn-primary"
+                style="padding: 1.2rem 3rem; font-size: 1.1rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border: none; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);">
+                <i class="ph ph-gift"></i> Canjear Puntos
+            </a>
+            <a href="{% url 'mis_registros_canjes' %}" class="btn btn-secondary"
+                style="padding: 1.2rem 2rem; font-size: 1.1rem; background: var(--bg-card); border: 1px solid var(--border);">
+                <i class="ph ph-list-dashes"></i> Mis Registros
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

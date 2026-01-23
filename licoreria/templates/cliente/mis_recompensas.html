@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Historial de Recompensas | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recompensa-item {
+        background: var(--bg-sidebar);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+
+    .recompensa-item:hover {
+        border-color: var(--accent);
+        transform: translateX(5px);
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .status-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+    }
+
+    .pending {
+        color: #fbbf24;
+    }
+
+    .pending .status-dot {
+        background: #fbbf24;
+        box-shadow: 0 0 8px #fbbf24;
+    }
+
+    .approved {
+        color: #10b981;
+    }
+
+    .approved .status-dot {
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+    }
+
+    .rejected {
+        color: #ef4444;
+    }
+
+    .rejected .status-dot {
+        background: #ef4444;
+        box-shadow: 0 0 8px #ef4444;
+    }
+
+    .delivered {
+        color: #8b5cf6;
+    }
+
+    .delivered .status-dot {
+        background: #8b5cf6;
+        box-shadow: 0 0 8px #8b5cf6;
+    }
+
+    .points-tag {
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div class="header-actions">
+        <div>
+            <h2 style="margin: 0;">Mi Historial de Recompensas</h2>
+            <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Seguimiento de canjes y beneficios obtenidos</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{% url 'solicitar_recompensa' %}" class="btn btn-primary">
+                <i class="ph ph-gift"></i> Nuevo Canje
+            </a>
+            <a href="{% url 'index' %}" class="btn btn-secondary">← Volver</a>
+        </div>
+    </div>
+
+    <div class="recompensas-list">
+        {% for r in recompensas %}
+        <div class="recompensa-item">
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <div
+                    style="font-size: 2.5rem; background: rgba(255,255,255,0.03); width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                    {% if r.tipo == 'DES' %}💰{% elif r.tipo == 'REG' %}🎁{% else %}⭐{% endif %}
+                </div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0; color: white; font-size: 1.1rem;">
+                        <span style="color: var(--accent-secondary); font-size: 0.9rem; margin-right: 8px;">#CANJE-{{
+                            r.id|stringformat:"05d" }}</span>
+                        {{ r.descripcion }}
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span style="color: var(--text-secondary); font-size: 0.85rem;">
+                            <i class="ph ph-calendar"></i> {{ r.fecha_solicitud|default:r.fecha_otorgada|date:"d M, Y"
+                            }}
+                        </span>
+                        <span class="points-tag">{{ r.costo_puntos }} Puntos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: right; min-width: 180px;">
+                <div class="status-text {% if r.estado_solicitud == 'PEND' %}pending{% elif r.estado_solicitud == 'APROB' %}approved{% elif r.estado_solicitud == 'ENTR' %}delivered{% else %}rejected{% endif %}"
+                    style="justify-content: flex-end; margin-bottom: 12px;">
+                    <span class="status-dot"></span>
+                    {{ r.get_estado_solicitud_display }}
+                </div>
+
+                {% if r.estado_solicitud == 'APROB' %}
+                <a href="{% url 'confirmar_entrega' r.id %}" class="btn btn-primary"
+                    style="padding: 8px 16px; font-size: 0.85rem; width: 100%; justify-content: center;">
+                    Confirmar Entrega
+                </a>
+                {% elif r.estado_solicitud == 'RECH' and r.notas_supervisor %}
+                <div style="font-size: 0.8rem; color: #ef4444; font-style: italic;">
+                    "{{ r.notas_supervisor }}"
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div
+            style="background: var(--bg-sidebar); border: 1px dashed var(--border); padding: 5rem; text-align: center; border-radius: 20px;">
+            <i class="ph ph-gift"
+                style="font-size: 4rem; color: var(--accent); opacity: 0.2; margin-bottom: 1.5rem; display: block;"></i>
+            <h3 style="color: white; margin-bottom: 0.5rem;">Aún no tienes canjes</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Acumula puntos con tus compras y canjéalos por
+                premios exclusivos.</p>
+            <a href="{% url 'solicitar_recompensa' %}" class="btn btn-primary">Ir al Catálogo</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

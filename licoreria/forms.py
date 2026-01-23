@@ -1,5 +1,5 @@
 from django import forms
-from .models import Clientes, Productos, Categorias, Marcas, Distribuidores, Prestamos, Recompensas
+from .models import Clientes, Productos, Categorias, Marcas, Distribuidores, Recompensas, Multas, Cocteles
 from django.contrib.auth.models import User, Group
 
 class ClienteForm(forms.ModelForm):
@@ -46,24 +46,7 @@ class EmpleadoForm(forms.ModelForm):
             'cargo': 'Cargo',
         }
 
-from .models import Prestamos
 
-class PrestamoForm(forms.ModelForm):
-    class Meta:
-        model = Prestamos
-        fields = ['cliente', 'descripcion', 'valor', 'devuelto']
-        widgets = {
-            'cliente': forms.Select(attrs={'class': 'form-select'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción del préstamo...'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
-            'devuelto': forms.CheckboxInput(attrs={'class': 'form-check-input'})
-        }
-        labels = {
-            'cliente': 'Cliente',
-            'descripcion': 'Detalle / Descripción',
-            'valor': 'Valor ($)',
-            'devuelto': '¿Ya fue devuelto?'
-        }
 
 class RegistroClienteForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}))
@@ -134,3 +117,33 @@ class RegistroEmpleadoForm(forms.Form):
         if password != confirm_password:
             raise forms.ValidationError("Las contraseñas no coinciden")
         return cleaned_data
+
+
+class StockUpdateForm(forms.Form):
+    cantidad = forms.IntegerField(label="Cantidad a Añadir", widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 10 o -5'}))
+    motivo = forms.CharField(label="Motivo", required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Nueva compra, Rotura'}))
+
+class MultaForm(forms.ModelForm):
+    class Meta:
+        model = Multas
+        fields = ['cliente', 'tipo', 'monto', 'descripcion']
+        widgets = {
+            'cliente': forms.Select(attrs={'class': 'form-select'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+class CoctelForm(forms.ModelForm):
+    class Meta:
+        model = Cocteles
+        fields = ['nombre', 'categoria', 'ingredientes', 'instrucciones', 'imagen_url', 'es_alcoholico', 'stock', 'precio']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria': forms.TextInput(attrs={'class': 'form-control'}),
+            'ingredientes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'instrucciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'imagen_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

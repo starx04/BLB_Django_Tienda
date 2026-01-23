@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Multas | Licorería{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem;">
+    <h2 class="mb-4" style="color: var(--accent-primary);">
+        <i class="ph ph-warning-octagon" style="margin-right: 10px;"></i>
+        Mis Multas
+    </h2>
+
+    <div class="card"
+        style="background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 16px;">
+        <table class="table" style="color: var(--text-primary);">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Orden</th>
+                    <th>Descripción</th>
+                    <th style="text-align: right;">Monto</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for multa in multas %}
+                <tr>
+                    <td>
+                        <span
+                            style="background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem;">
+                            {{ multa.get_tipo_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if multa.orden %}
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span style="font-family: monospace; color: var(--accent-primary);">
+                                #{{ multa.orden.codigo_orden }}
+                            </span>
+                            {% if multa.orden.pagada %}
+                            <span title="Orden Pagada" style="color: var(--accent-success); font-size: 0.8rem;">
+                                <i class="ph ph-check-circle-fill"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width: 250px;">{{ multa.descripcion|truncatewords:8 }}</td>
+                    <td style="text-align: right; font-weight: 700; color: var(--accent-danger);">
+                        ${{ multa.monto|floatformat:2 }}
+                    </td>
+                    <td>{{ multa.fecha_generada|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if multa.pagada or multa.orden and multa.orden.pagada %}
+                        <span class="badge"
+                            style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">
+                            <i class="ph ph-check-circle"></i> Pagada
+                        </span>
+                        {% else %}
+                        <span class="badge"
+                            style="background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem;">
+                            <i class="ph ph-warning-circle"></i> Pendiente
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if multa.orden %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a href="{% url 'detalle_orden' multa.orden.id %}" class="btn-icon" title="Ver Orden"
+                                style="color: var(--accent-primary); text-decoration: none;">
+                                <i class="ph ph-eye" style="font-size: 1.2rem;"></i>
+                            </a>
+
+                            {% if not multa.pagada and not multa.orden.pagada %}
+                            <a href="{% url 'detalle_orden' multa.orden.id %}"
+                                style="display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-success); border-radius: 6px; color: var(--accent-success); text-decoration: none; transition: all 0.3s ease; font-size: 0.75rem;"
+                                onmouseover="this.style.background='var(--accent-success)'; this.style.color='white';"
+                                onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.color='var(--accent-success)';">
+                                <i class="ph ph-money" style="margin-right: 4px;"></i> Pagar
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        No tienes multas registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if multas %}
+    <div class="mt-3"
+        style="padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: white;">Total Pendiente:</strong>
+                <span style="color: var(--accent-danger); font-size: 1.2rem; font-weight: 700; margin-left: 10px;">
+                    ${{ cliente.total_deuda_multas|floatformat:2 }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'panel_fidelidad' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+{% endblock %}

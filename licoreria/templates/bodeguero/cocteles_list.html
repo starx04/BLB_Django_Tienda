@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Cócteles | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .coctel-admin-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        padding: 1.2rem;
+        display: grid;
+        grid-template-columns: 80px 1fr 120px 150px;
+        gap: 1.5rem;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .coctel-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        object-fit: cover;
+    }
+
+    .stock-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+    <div>
+        <h2 style="margin: 0;"><i class="ph ph-martini" style="color: var(--accent-secondary);"></i> Inventario de
+            Cócteles</h2>
+        <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Gestión de recetas y stock de preparados</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'importar_cocteles' %}" class="btn btn-primary">
+            <i class="ph ph-cloud-arrow-down"></i> Importar Más
+        </a>
+        <button onclick="history.back()" class="btn btn-secondary">← Volver</button>
+    </div>
+</div>
+
+<div class="cocteles-list">
+    {% for coctel in cocteles %}
+    <div class="coctel-admin-card">
+        <img src="{{ coctel.imagen_url }}" class="coctel-img"
+            onerror="this.src='https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=100'">
+        <div>
+            <h4 style="margin: 0; color: white;">{{ coctel.nombre }}</h4>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ coctel.categoria }}</div>
+            <div style="font-size: 0.75rem; color: var(--accent-primary); margin-top: 4px;">
+                {% if coctel.es_alcoholico %}Con Alcohol{% else %}Sin Alcohol{% endif %}
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px;">Stock Actual</div>
+            <span class="stock-badge {% if coctel.stock < 5 %}stock-low{% else %}stock-ok{% endif %}">
+                {{ coctel.stock }} unidades
+            </span>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button data-id="{{ coctel.id }}" data-nombre="{{ coctel.nombre }}" onclick="abrirModalStock(this)"
+                class="btn btn-primary btn-sm">
+                <i class="ph ph-plus-minus"></i> Stock
+            </button>
+            <a href="{% url 'eliminar_coctel' coctel.id %}" class="btn btn-danger btn-sm">
+                <i class="ph ph-trash"></i>
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 5rem; background: var(--bg-card); border-radius: 20px;">
+        <p style="color: var(--text-secondary);">No has importado cócteles aún.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Stock (Usando sistema global) -->
+<div id="modalStock" class="modal">
+    <div class="modal-content">
+        <i class="ph ph-x modal-close" onclick="closeModal('modalStock')"></i>
+
+        <h3 style="margin: 0 0 0.5rem 0;">Ajuste de Inventario</h3>
+        <p id="itemName"
+            style="color: var(--accent-primary); font-weight: 700; font-size: 1.1rem; margin-bottom: 2rem;"></p>
+
+        <form id="formStock" method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label>Cantidad a ajustar:</label>
+                    <input type="number" name="cantidad" class="form-control" required
+                        placeholder="Ej: 5 (añadir) o -3 (quitar)">
+                </div>
+                <div>
+                    <label>Motivo:</label>
+                    <input type="text" name="motivo" class="form-control" required
+                        placeholder="Ej: Preparación lote, Merma...">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="justify-content: center;">Confirmar</button>
+                    <button type="button" onclick="closeModal('modalStock')" class="btn btn-secondary"
+                        style="justify-content: center;">Cancelar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalStock(btn) {
+        const id = btn.getAttribute('data-id');
+        const nombre = btn.getAttribute('data-nombre');
+        document.getElementById('itemName').textContent = nombre;
+        document.getElementById('formStock').action = `/gestion/productos/stock/coctel/${id}/`;
+        openModal('modalStock');
+    }
+</script>
+{% endblock %}

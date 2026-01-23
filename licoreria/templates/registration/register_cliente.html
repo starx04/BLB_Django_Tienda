@@ -16,8 +16,7 @@
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             {% for field in form %}
             <div class="form-group">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{
-                    field.label }}</label>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{ field.label }}</label>
                 {{ field }}
                 {% if field.errors %}
                 <div style="color: var(--danger); font-size: 0.8rem; margin-top: 5px;">{{ field.errors.0 }}</div>

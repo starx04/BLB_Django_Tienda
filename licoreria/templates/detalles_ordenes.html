@@ -1,40 +1,384 @@
 {% extends 'base.html' %}
 
-{% block title %}Detalle de Ventas | Licorería Premium{% endblock %}
+{% block title %}Detalle de Orden | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .detail-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .fidelity-panel {
+        background: linear-gradient(135deg, rgba(188, 19, 254, 0.1), rgba(0, 243, 255, 0.1));
+        border: 2px solid var(--accent-primary);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .items-table thead th {
+        padding: 1rem;
+        text-align: left;
+        color: var(--accent-primary);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .items-table tbody tr {
+        background: rgba(255, 255, 255, 0.03);
+        transition: all 0.3s ease;
+    }
+
+    .items-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateX(5px);
+    }
+
+    .items-table tbody td {
+        padding: 1.2rem 1rem;
+    }
+
+    .items-table tbody tr td:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    .items-table tbody tr td:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Detalle de Items Vendidos</h2>
-    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+<div class="order-detail-container">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="margin: 0; font-size: 2rem; font-weight: 900;">
+                Detalle de Orden <span style="color: var(--accent-primary);">#{{ orden.codigo_orden }}</span>
+            </h2>
+            <p style="color: var(--text-secondary); margin: 5px 0 0 0;">
+                <i class="ph ph-calendar"></i> {{ orden.fecha|date:"d/m/Y - H:i" }}
+            </p>
+        </div>
+        <a href="{% url 'ordenes' %}" class="btn btn-secondary" style="padding: 0.8rem 1.5rem;">
+            <i class="ph ph-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Items Section -->
+        <div class="detail-card">
+            <h3
+                style="margin: 0 0 1.5rem 0; font-size: 1.3rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px;">
+                <i class="ph ph-shopping-bag"></i> Productos
+            </h3>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Unit.</th>
+                        <th style="text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: white; margin-bottom: 3px;">
+                                {% if detalle.producto %}
+                                {{ detalle.producto.nombre }}
+                                {% else %}
+                                {{ detalle.coctel.nombre }}
+                                {% endif %}
+                            </div>
+                            {% if detalle.producto and detalle.producto.categoria %}
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                <i class="ph ph-tag"></i> {{ detalle.producto.categoria.nombre }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center; font-weight: 700; color: white; font-size: 1.1rem;">
+                            {{ detalle.cantidad }}
+                        </td>
+                        <td style="text-align: right; color: var(--text-secondary);">
+                            ${{ detalle.precio_unitario|floatformat:2 }}
+                        </td>
+                        <td
+                            style="text-align: right; color: var(--accent-success); font-weight: 700; font-size: 1.1rem;">
+                            ${{ detalle.subtotal|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                            No hay productos en esta orden.
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    {# Mostrar Multas como Ítems adicionales #}
+                    {% for multa in multas %}
+                    <tr>
+                        <td style="border-left: 3px solid var(--accent-danger);">
+                            <div style="font-weight: 600; color: var(--accent-danger); margin-bottom: 3px;">
+                                <i class="ph ph-warning-octagon"></i> Multa: {{ multa.get_tipo_display }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ multa.descripcion }}
+                            </div>
+                        </td>
+                        <td style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">1</td>
+                        <td style="text-align: right; color: var(--text-secondary);">${{ multa.monto|floatformat:2 }}</td>
+                        <td style="text-align: right; color: var(--accent-danger); font-weight: 700; font-size: 1.1rem;">
+                            ${{ multa.monto|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Total & Desglose de Descuentos -->
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border);">
+                {% if descuento_aplicado %}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">Subtotal Items:</span>
+                    <span style="color: white; font-weight: 700; font-size: 1.1rem;">${{ subtotal_items|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border);">
+                    <span style="color: var(--accent-secondary); font-weight: 700; text-transform: uppercase; font-size: 0.9rem;">
+                        <i class="ph ph-ticket"></i> Descuento ({{ descuento_aplicado.descripcion }}):
+                    </span>
+                    <span style="color: var(--accent-secondary); font-weight: 800; font-size: 1.1rem;">
+                        {% if descuento_aplicado.tipo == 'DES' %}
+                            -${{ descuento_aplicado.valor|floatformat:2 }}
+                        {% else %}
+                            -{{ descuento_aplicado.valor|floatformat:0 }}%
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.3rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase;">Total Final:</span>
+                    <span style="font-size: 2.5rem; font-weight: 900; color: var(--accent-success); text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                        ${{ orden.total|floatformat:2 }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Order Status -->
+            <div class="detail-card">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 800; color: var(--accent-secondary);">
+                    <i class="ph ph-info"></i> Estado
+                </h3>
+                <div style="text-align: center; padding: 1rem;">
+                    {% if orden.estado == 'SOLI' %}
+                    <div style="font-size: 2.5rem; color: #fbbf24; margin-bottom: 10px;">
+                        <i class="ph ph-clock-countdown"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #fbbf24; text-transform: uppercase;">
+                        Solicitud</div>
+                    {% elif orden.estado == 'PREST' %}
+                    <div style="font-size: 2.5rem; color: #3b82f6; margin-bottom: 10px;">
+                        <i class="ph ph-hand-shake"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #3b82f6; text-transform: uppercase;">Con
+                        préstamo</div>
+                    {% elif orden.estado == 'PAGD' %}
+                    <div style="font-size: 2.5rem; color: #10b981; margin-bottom: 10px;">
+                        <i class="ph ph-seal-check"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #10b981; text-transform: uppercase;">Pagada
+                    </div>
+                    {% elif orden.estado == 'MULT' %}
+                    <div style="font-size: 2.5rem; color: #ef4444; margin-bottom: 10px;">
+                        <i class="ph ph-warning-octagon"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #ef4444; text-transform: uppercase;">Multada
+                    </div>
+                    {% elif orden.estado == 'CANC' %}
+                    <div style="font-size: 2.5rem; color: #64748b; margin-bottom: 10px;">
+                        <i class="ph ph-x-circle"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #64748b; text-transform: uppercase;">
+                        Cancelada</div>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                    <div style="margin-top: 1.5rem; pt-3; border-top: 1px solid var(--border);">
+                        <button type="button" class="btn btn-danger w-100"
+                            onclick="document.getElementById('modalMulta').style.display='flex'">
+                            <i class="ph ph-gavel"></i> Aplicar Multa
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Payment Action Block -->
+            {% if not orden.pagada and orden.estado != 'SOLI' and orden.estado != 'CANC' %}
+                {% if user.is_staff or user.is_superuser or user.email == orden.cliente.email %}
+                <div class="detail-card"
+                    style="border: 1px solid var(--accent-success); background: rgba(16, 185, 129, 0.05); margin-top: 2rem;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 800; color: var(--accent-success);">
+                        <i class="ph ph-currency-dollar"></i> Gestión de Pago
+                    </h3>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(16, 185, 129, 0.2); padding-bottom: 1rem;">
+                        <span style="color: white;">Total Pendiente:</span>
+                        <span style="font-size: 1.5rem; font-weight: 900; color: white;">${{ orden.total|floatformat:2 }}</span>
+                    </div>
+
+                    <a href="{% url 'marcar_orden_pagada' orden.id %}" class="btn"
+                        onclick="return confirm('¿Confirmar que vas a realizar el pago de ${{ orden.total|floatformat:2 }}?')"
+                        style="width: 100%; background: var(--accent-success); color: black; font-weight: 800; padding: 1rem; border-radius: 8px; text-align: center; text-transform: uppercase; display: block; text-decoration: none; transition: transform 0.2s;">
+                        Confirmar Pago
+                    </a>
+                    <div style="text-align: center; margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">
+                        <i class="ph ph-check-circle"></i> Liberará cupo y asignará puntos
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Fidelity Panel -->
+            {% if orden.cliente %}
+            <div class="fidelity-panel">
+                <h3
+                    style="margin: 0 0 1.2rem 0; font-size: 1.1rem; font-weight: 800; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; text-align: center;">
+                    <i class="ph ph-star"></i> Panel de Fidelidad
+                </h3>
+
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                        Cliente
+                    </div>
+                    <div style="font-size: 1.3rem; font-weight: 800; color: white;">
+                        {{ orden.cliente.nombre }}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <!-- Current Points -->
+                    <div
+                        style="background: rgba(0, 243, 255, 0.1); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 12px; padding: 1rem; text-align: center;">
+                        <div
+                            style="font-size: 0.7rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                            Puntos Disponibles
+                        </div>
+                        <div
+                            style="font-size: 2rem; font-weight: 900; color: var(--accent-primary); text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);">
+                            {{ orden.cliente.puntos_actuales_calculados }}
+                        </div>
+                    </div>
+
+                    <!-- Points for this Order -->
+                    <div
+                        style="background: rgba(188, 19, 254, 0.1); border: 1px solid rgba(188, 19, 254, 0.3); border-radius: 12px; padding: 1rem; text-align: center;">
+                        <div
+                            style="font-size: 0.7rem; color: var(--accent-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                            Puntos x Orden
+                        </div>
+                        <div
+                            style="font-size: 2rem; font-weight: 900; color: var(--accent-secondary); text-shadow: 0 0 15px rgba(188, 19, 254, 0.5);">
+                            +{% widthratio orden.total 10 1 %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if orden.puntos_asignados %}
+                <div
+                    style="margin-top: 1rem; padding: 0.8rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; text-align: center;">
+                    <i class="ph ph-check-circle" style="color: var(--accent-success);"></i>
+                    <span style="font-size: 0.85rem; color: var(--accent-success); font-weight: 600;">
+                        Puntos ya asignados por esta orden
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Orden</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for detalle in detalles %}
-        <tr>
-            <td><a href="#" style="color: var(--accent-color); text-decoration: none;">Orden #{{ detalle.orden.id }}</a>
-            </td>
-            <td>{{ detalle.producto.nombre }}</td>
-            <td>{{ detalle.cantidad }}</td>
-            <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
-            <td style="color: var(--price-color); font-weight: bold;">${% widthratio detalle.precio_unitario 1
-                detalle.cantidad %}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">No hay detalles registrados.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<p style="font-size: 0.8rem; color: #64748b; margin-top: 1rem;">* El subtotal es un cálculo referencial.</p>
+<!-- Modal Multa -->
+<div id="modalMulta"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div
+        style="background: var(--bg-card); padding: 2rem; border-radius: 16px; border: 1px solid var(--accent-danger); width: 90%; max-width: 500px; position: relative;">
+        <button onclick="document.getElementById('modalMulta').style.display='none'"
+            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: white; cursor: pointer;">
+            <i class="ph ph-x" style="font-size: 1.5rem;"></i>
+        </button>
+
+        <h3 style="color: var(--accent-danger); margin-top: 0; margin-bottom: 0.5rem;">
+            <i class="ph ph-gavel"></i> Aplicar Multa
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Se aplicará una multa a la orden #{{ orden.codigo_orden }}
+        </p>
+
+        <form method="POST" action="{% url 'aplicar_multa' orden.id %}">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Tipo de
+                    Multa</label>
+                <select name="tipo" class="form-control"
+                    style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;">
+                    <option value="TARD">Pago Tardío de Orden</option>
+                    <option value="DANO">Daño a Instalaciones</option>
+                    <option value="COMP">Comportamiento Inadecuado</option>
+                    <option value="OTRO">Otras Sanciones</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Monto ($)</label>
+                <input type="number" name="monto" step="0.01" required class="form-control"
+                    style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;"
+                    placeholder="0.00">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Descripción</label>
+                <textarea name="descripcion" rows="3" required class="form-control"
+                    style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;">Recargo por retraso en Orden #{{ orden.codigo_orden }}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button type="button" onclick="document.getElementById('modalMulta').style.display='none'"
+                    class="btn btn-secondary" style="width: 100%;">Cancelar</button>
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Confirmar Multa</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

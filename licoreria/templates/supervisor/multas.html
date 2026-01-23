@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Sanciones y Multas | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fines-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .fine-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .fine-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-secondary);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .fine-card.unpaid {
+        border-left: 4px solid #ef4444;
+    }
+
+    .fine-card.paid {
+        border-left: 4px solid #10b981;
+        opacity: 0.8;
+    }
+
+    .monto-badge {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-actions"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+    <div>
+        <h1 style="margin: 0;">Multas y Sanciones</h1>
+        <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Control administrativo de penalizaciones comerciales
+        </p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <button onclick="document.getElementById('modalMulta').style.display='block'" class="btn btn-primary">
+            <i class="ph ph-plus-circle"></i> Aplicar Multa
+        </button>
+        <button onclick="history.back()" class="btn btn-secondary">← Volver</button>
+    </div>
+</div>
+
+<div class="fines-grid">
+    {% for multa in multas %}
+    <div class="fine-card {% if multa.pagada %}paid{% else %}unpaid{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <span class="status-badge {% if multa.pagada %}status-approved{% else %}status-rejected{% endif %}">
+                {% if multa.pagada %}Pagada{% else %}Pendiente{% endif %}
+            </span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ multa.fecha_generada|date:"d M, Y"
+                }}</span>
+        </div>
+        <div class="monto-badge">${{ multa.monto }}</div>
+        <h4 style="margin: 0 0 0.5rem 0;">{{ multa.cliente.nombre }}</h4>
+        <p
+            style="color: var(--accent-secondary); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 1rem;">
+            {{ multa.get_tipo_display }}
+        </p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; margin-bottom: 1.5rem;">
+            {{ multa.descripcion }}
+        </p>
+
+        {% if not multa.pagada %}
+        <form method="POST" action="{% url 'gestion_multas' %}" style="margin-top: auto;">
+            {% csrf_token %}
+            <input type="hidden" name="pagar_id" value="{{ multa.id }}">
+            <button type="submit" name="accion" value="pagar" class="btn btn-primary btn-sm"
+                style="width: 100%; justify-content: center;">
+                Registrar Pago
+            </button>
+        </form>
+        {% else %}
+        <div style="font-size: 0.8rem; color: var(--success); text-align: center;">
+            <i class="ph ph-check-circle"></i> Pagada el {{ multa.fecha_pago|date:"d/m/Y" }}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div style="grid-column: 1/-1; text-align: center; padding: 5rem; background: var(--bg-card); border-radius: 20px;">
+        <i class="ph ph-shield-check" style="font-size: 4rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+        <p style="color: var(--text-secondary);">No hay multas registradas en el sistema.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Aplicar Multa -->
+<div id="modalMulta" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="margin: 0;">Aplicar Nueva Sanción</h3>
+            <span onclick="document.getElementById('modalMulta').style.display='none'"
+                style="cursor: pointer; font-size: 1.5rem;">&times;</span>
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                {% for field in form %}
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: #94a3b8;">{{
+                        field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endfor %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="justify-content: center;">Confirmar
+                        Multa</button>
+                    <button type="button" onclick="document.getElementById('modalMulta').style.display='none'"
+                        class="btn btn-secondary" style="justify-content: center;">Cancelar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    window.onclick = function (event) {
+        let modal = document.getElementById('modalMulta');
+        if (event.target == modal) modal.style.display = "none";
+    }
+</script>
+{% endblock %}

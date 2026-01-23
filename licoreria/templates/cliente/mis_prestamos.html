@@ -1,53 +1,174 @@
 {% extends 'base.html' %}
 
-{% block header_title %}Mis Préstamos{% endblock %}
+{% block title %}Mis Préstamos | Licorería{% endblock %}
+
+{% block header_title %}Mis Registros de Préstamos{% endblock %}
 
 {% block content %}
-<div style="background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border);">
-    <h2 style="margin-top: 0; margin-bottom: 2rem;"><i class="ph ph-hand-shake" style="color: var(--accent);"></i>
-        Estado de mis Préstamos</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Descripción</th>
-                <th>Monto</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for r in prestamos %}
-            <tr>
-                <td>{{ r.fecha_prestamo|date:"d M Y" }}</td>
-                <td>{{ r.descripcion }}</td>
-                <td style="color: var(--danger); font-weight: bold;">${{ r.valor }}</td>
-                <td>
-                    {% if r.devuelto %}
-                    <span style="color: var(--success); font-weight: 600;">Cancelado / Pagado</span>
-                    {% else %}
-                    <span
-                        style="background: rgba(239, 68, 68, 0.2); color: var(--danger); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">Pendiente
-                        de Pago</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" style="text-align: center; color: #64748b; padding: 4rem;">
-                    No tienes préstamos registrados.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+<div class="container" style="margin-top: 2rem;">
+    <!-- Header Section -->
     <div
-        style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 12px; border: 1px dashed var(--accent);">
-        <p style="margin: 0; color: var(--accent); font-weight: 500;">
-            <i class="ph ph-info"></i> Recuerda que puedes solicitar ampliaciones de cupo o nuevos préstamos contactando
-            directamente al Supervisor en la tienda física.
-        </p>
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="color: var(--accent-primary); margin: 0; font-size: 2rem; font-weight: 700;">
+                <i class="ph ph-hand-coins" style="margin-right: 10px;"></i>
+                Mis Préstamos Activos
+            </h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                Consulta el estado de tus créditos y realiza pagos
+            </p>
+        </div>
+
+        <!-- Credit Limit Card -->
+        <div
+            style="background: rgba(0, 243, 255, 0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--accent-primary); min-width: 200px;">
+            <div
+                style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                Cupo Disponible
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 1.8rem; font-weight: 700; color: var(--accent-primary);">
+                    ${{ user.cliente.limite_prestamo|floatformat:2 }}
+                </span>
+                <span style="font-size: 0.85rem; color: var(--accent-primary); opacity: 0.8;">MAX</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table Card -->
+    <div class="card"
+        style="background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <div style="overflow-x: auto;">
+            <table class="table" style="margin: 0; color: var(--text-primary); width: 100%;">
+                <thead>
+                    <tr style="background: rgba(255, 255, 255, 0.02);">
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+                            Código</th>
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+                            Fecha</th>
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+                            Estado</th>
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); text-align: right;">
+                            Total</th>
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); text-align: center;">
+                            Pagado</th>
+                        <th
+                            style="padding: 1.2rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); text-align: center;">
+                            Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in prestamos %}
+                    <tr style="transition: all 0.3s ease; border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1.2rem;">
+                            <span
+                                style="font-family: monospace; background: rgba(0, 243, 255, 0.08); padding: 6px 12px; border-radius: 8px; color: var(--accent-primary); border: 1px solid rgba(0, 243, 255, 0.2); font-weight: 700; font-size: 0.95rem;">
+                                #{{ o.codigo_orden }}
+                            </span>
+                        </td>
+                        <td style="padding: 1.2rem;">
+                            <div style="font-weight: 500; color: white; margin-bottom: 4px;">{{ o.fecha|date:"d M, Y" }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">{{ o.fecha|date:"H:i" }}</div>
+                        </td>
+                        <td style="padding: 1.2rem;">
+                            {% if o.estado == 'PREST' %}
+                            <span
+                                style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 243, 255, 0.1); color: var(--accent-primary); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(0, 243, 255, 0.2);">
+                                <i class="ph ph-clock-countdown"></i> Activo
+                            </span>
+                            {% elif o.estado == 'PAGD' %}
+                            <span
+                                style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); color: var(--accent-success); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <i class="ph ph-check-circle"></i> Pagado
+                            </span>
+                            {% elif o.estado == 'MULT' %}
+                            <span
+                                style="display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.1); color: var(--accent-danger); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <i class="ph ph-warning-octagon"></i> Con Multa
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1.2rem; text-align: right;">
+                            <div
+                                style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.2rem; color: white;">
+                                ${{ o.total|floatformat:2 }}
+                            </div>
+                        </td>
+                        <td style="padding: 1.2rem; text-align: center;">
+                            {% if o.pagada %}
+                            <div
+                                style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid var(--accent-success);">
+                                <i class="ph ph-check" style="color: var(--accent-success);"></i>
+                            </div>
+                            {% else %}
+                            <div
+                                style="width: 32px; height: 32px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid var(--accent-danger);">
+                                <i class="ph ph-x" style="color: var(--accent-danger);"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1.2rem; text-align: center;">
+                            <a href="{% url 'detalle_orden' o.id %}"
+                                style="display: inline-flex; align-items: center; padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 8px; color: white; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease;"
+                                onmouseover="this.style.background='var(--accent-primary)'; this.style.borderColor='var(--accent-primary)'; this.style.color='black';"
+                                onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border)'; this.style.color='white';">
+                                <i class="ph ph-list-magnifying-glass" style="margin-right: 6px;"></i> Ver Detalles
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 4rem 2rem;">
+                            <div style="opacity: 0.5; display: flex; flex-direction: column; align-items: center;">
+                                <div
+                                    style="width: 80px; height: 80px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                                    <i class="ph ph-receipt"
+                                        style="font-size: 2.5rem; color: var(--text-secondary);"></i>
+                                </div>
+                                <h3 style="color: white; font-size: 1.2rem; margin-bottom: 0.5rem;">No tienes préstamos
+                                    activos</h3>
+                                <p style="color: var(--text-secondary); max-width: 300px; margin: 0;">
+                                    Las órdenes que solicites a crédito aparecerán aquí una vez sean aprobadas.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Info Footer -->
+    <div
+        style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <div
+            style="background: linear-gradient(145deg, rgba(0, 243, 255, 0.05), rgba(0, 0, 0, 0)); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(0, 243, 255, 0.1);">
+            <div style="display: flex; gap: 1rem;">
+                <i class="ph ph-info" style="font-size: 1.5rem; color: var(--accent-primary); margin-top: 4px;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: white; font-size: 1rem;">Sobre tu Crédito</h4>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                        Mantén tus pagos al día para aumentar tu cupo disponible. Los pagos se registran cuando el
+                        administrador confirma la transacción.
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+</style>
 {% endblock %}

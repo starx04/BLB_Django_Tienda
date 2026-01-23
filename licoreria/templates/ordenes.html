@@ -1,40 +1,300 @@
 {% extends 'base.html' %}
 
-{% block title %}Órdenes | Licorería Premium{% endblock %}
+{% block title %}Órdenes Globales | Licorería{% endblock %}
+
+{% block header_title %}Registro Global de Órdenes{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2>Historial de Órdenes</h2>
-    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver al Inicio</a>
+<div class="container" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="color: var(--accent-primary); margin: 0; font-size: 2rem; font-weight: 700;">
+                <i class="ph ph-list-numbers" style="margin-right: 10px;"></i>
+                Registro Global de Órdenes
+            </h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                Historial completo de todas las órdenes del sistema
+            </p>
+        </div>
+        <div style="background: rgba(0, 243, 255, 0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--accent-primary);">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Total Órdenes</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-primary);">{{ ordenes.count }}</div>
+        </div>
+    </div>
+
+    <div class="card" style="background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 16px; overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table class="table" style="margin: 0; color: var(--text-primary);">
+                <thead>
+                    <tr>
+                        <th style="min-width: 120px;">Código</th>
+                        <th style="min-width: 200px;">Cliente</th>
+                        <th style="min-width: 150px;">Fecha</th>
+                        <th style="min-width: 120px; text-align: right;">Total</th>
+                        <th style="min-width: 140px;">Estado</th>
+                        <th style="min-width: 100px; text-align: center;">Pagada</th>
+                        <th style="min-width: 200px; text-align: center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orden in ordenes %}
+                    <tr style="transition: all 0.3s ease;">
+                        <td>
+                            <span style="font-family: monospace; background: rgba(0, 243, 255, 0.1); padding: 5px 12px; border-radius: 6px; color: var(--accent-primary); border: 1px solid rgba(0, 243, 255, 0.3); font-weight: 700; font-size: 0.9rem;">
+                                {{ orden.codigo_orden }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 35px; height: 35px; background: var(--accent-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 0.9rem;">
+                                    {{ orden.cliente.nombre|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: white;">{{ orden.cliente.nombre }}</div>
+                                    {% if orden.cliente.user %}
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">@{{ orden.cliente.user.username }}</div>
+                                    {% else %}
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ orden.cliente.codigo_unico }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem; color: var(--text-primary);">
+                                {{ orden.fecha|date:"d/m/Y" }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ orden.fecha|date:"H:i" }}
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <span style="font-family: 'Courier New', monospace; font-weight: 700; font-size: 1.1rem; color: white;">
+                                ${{ orden.total|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if orden.estado == 'SOLI' %}
+                            <span class="badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #fbbf24;">
+                                <i class="ph ph-clock-countdown"></i> Solicitud
+                            </span>
+                            {% elif orden.estado == 'PREST' %}
+                            <span class="badge" style="background: rgba(0, 243, 255, 0.2); color: var(--accent-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-primary);">
+                                <i class="ph ph-hand-shake"></i> Préstamo
+                            </span>
+                            {% elif orden.estado == 'PAGD' %}
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-success);">
+                                <i class="ph ph-seal-check"></i> Pagada
+                            </span>
+                            {% elif orden.estado == 'MULT' %}
+                            <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-danger);">
+                                <i class="ph ph-warning-octagon"></i> Multada
+                            </span>
+                            {% elif orden.estado == 'CANC' %}
+                            <span class="badge" style="background: rgba(156, 163, 175, 0.2); color: #9ca3af; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #9ca3af;">
+                                <i class="ph ph-x-circle"></i> Cancelada
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if orden.pagada %}
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; border: 2px solid var(--accent-success);">
+                                <i class="ph ph-check" style="color: var(--accent-success); font-size: 1.1rem;"></i>
+                            </span>
+                            {% else %}
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(239, 68, 68, 0.2); border-radius: 50%; border: 2px solid var(--accent-danger);">
+                                <i class="ph ph-x" style="color: var(--accent-danger); font-size: 1.1rem;"></i>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                <a href="{% url 'detalle_orden' orden.id %}" 
+                                   style="display: inline-flex; align-items: center; padding: 6px 12px; background: rgba(0, 243, 255, 0.1); border: 1px solid var(--accent-primary); border-radius: 6px; color: var(--accent-primary); text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease;"
+                                   onmouseover="this.style.background='var(--accent-primary)'; this.style.color='#000';"
+                                   onmouseout="this.style.background='rgba(0, 243, 255, 0.1)'; this.style.color='var(--accent-primary)';">
+                                    <i class="ph ph-eye" style="margin-right: 4px;"></i> Ver
+                                </a>
+                                
+                                {% if not orden.pagada and user.is_staff and orden.estado != 'SOLI' %}
+                                <a href="{% url 'detalle_orden' orden.id %}" 
+                                   style="display: inline-flex; align-items: center; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-success); border-radius: 6px; color: var(--accent-success); text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease;"
+                                   onmouseover="this.style.background='var(--accent-success)'; this.style.color='#000';"
+                                   onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.color='var(--accent-success)';">
+                                    <i class="ph ph-receipt" style="margin-right: 4px;"></i> Pagar
+                                </a>
+                                {% endif %}
+                                
+                                {% if orden.estado == 'SOLI' %}
+                                <a href="{% url 'aprobar_orden_solicitud' orden.id %}" 
+                                   onclick="return confirm('¿Aprobar solicitud y convertir en préstamo activo?')"
+                                   style="display: inline-flex; align-items: center; padding: 6px 12px; background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 6px; color: #3b82f6; text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease;"
+                                   onmouseover="this.style.background='#3b82f6'; this.style.color='white';"
+                                   onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#3b82f6';">
+                                    <i class="ph ph-check" style="margin-right: 4px;"></i> Aprobar
+                                </a>
+                                <a href="{% url 'cancelar_orden_solicitud' orden.id %}" 
+                                   onclick="return confirm('¿Estás seguro de eliminar esta solicitud? Se devolverá el stock.')"
+                                   style="display: inline-flex; align-items: center; padding: 6px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-danger); border-radius: 6px; color: var(--accent-danger); text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease;"
+                                   onmouseover="this.style.background='var(--accent-danger)'; this.style.color='white';"
+                                   onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--accent-danger)';">
+                                    <i class="ph ph-trash" style="margin-right: 4px;"></i> Eliminar
+                                </a>
+                                {% endif %}
+
+                                {% if orden.estado == 'PREST' and not orden.pagada %}
+                                <button type="button" 
+                                    onclick="abrirModalMulta('{{ orden.id }}', '{{ orden.codigo_orden }}')"
+                                    style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-danger); border-radius: 6px; color: var(--accent-danger); text-decoration: none; transition: all 0.3s ease; font-size: 0.85rem; cursor: pointer;"
+                                    onmouseover="this.style.background='var(--accent-danger)'; this.style.color='white';"
+                                    onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--accent-danger)';">
+                                    <i class="ph ph-gavel" style="margin-right: 4px;"></i> Multar
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 4rem 2rem;">
+                            <div style="opacity: 0.5;">
+                                <i class="ph ph-list-numbers" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                                <p style="color: var(--text-secondary); font-size: 1.1rem; margin: 0;">No hay órdenes registradas</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if ordenes.count > 0 %}
+    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(0, 243, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 243, 255, 0.2);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Solicitudes
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #fbbf24;">
+                    {{ stats.solicitudes }}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Préstamos Activos
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">
+                    {{ stats.prestamos }}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Pagadas
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-success);">
+                    {{ stats.pagadas }}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Pendientes de Pago
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-danger);">
+                    {{ stats.pendientes_pago }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Código de Orden</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for orden in ordenes %}
-        <tr>
-            <td><strong>#{{ orden.id }}</strong></td>
-            <td>{{ orden.fecha|date:"d M Y - H:i" }}</td>
-            <td style="color: var(--price-color); font-weight: bold;">${{ orden.total }}</td>
-            <td>
-                <a href="{% url 'detalle_orden' orden.id %}" class="btn btn-primary"
-                    style="padding: 6px 12px; font-size: 0.9rem;">
-                    <i class="ph ph-eye"></i> Ver Detalles
-                </a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5" style="text-align: center; color: #64748b; padding: 2rem;">No hay órdenes registradas.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<!-- Modal Multa -->
+<div id="modalMulta" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: var(--bg-card); padding: 2rem; border-radius: 16px; border: 1px solid var(--accent-danger); width: 90%; max-width: 500px; position: relative;">
+        <button onclick="document.getElementById('modalMulta').style.display='none'" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: white; cursor: pointer;">
+            <i class="ph ph-x" style="font-size: 1.5rem;"></i>
+        </button>
+        
+        <h3 style="color: var(--accent-danger); margin-top: 0; margin-bottom: 0.5rem;">
+            <i class="ph ph-gavel"></i> Aplicar Multa
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Se aplicará una multa a la orden <span id="spanCodigoOrden" style="font-weight: bold; color: white;"></span>
+        </p>
+
+        <form id="formMulta" method="POST" action="">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Tipo de Multa</label>
+                <select name="tipo" class="form-control" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;">
+                    <option value="TARD">Pago Tardío de Orden</option>
+                    <option value="DANO">Daño a Instalaciones</option>
+                    <option value="COMP">Comportamiento Inadecuado</option>
+                    <option value="OTRO">Otras Sanciones</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Monto ($)</label>
+                <input type="number" name="monto" step="0.01" required class="form-control" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;" placeholder="0.00">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem;">Descripción</label>
+                <textarea name="descripcion" rows="3" required class="form-control" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 0.8rem; border-radius: 8px;">Recargo por retraso</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button type="button" onclick="document.getElementById('modalMulta').style.display='none'" class="btn btn-secondary" style="width: 100%;">Cancelar</button>
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Confirmar Multa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalMulta(id, codigo) {
+        document.getElementById('modalMulta').style.display = 'flex';
+        document.getElementById('spanCodigoOrden').innerText = '#' + codigo;
+        // Construir la URL dinámicamente. Asume que la URL base es /aplicar-multa/ID/
+        // Usamos un placeholder y lo reemplazamos
+        let urlBase = "{% url 'aplicar_multa' 0 %}".replace('/0/', '/' + id + '/');
+        document.getElementById('formMulta').action = urlBase;
+    }
+</script>
+
+
+<style>
+    /* Custom scrollbar for table */
+    .card > div {
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent-secondary) var(--bg-body);
+    }
+
+    .card > div::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .card > div::-webkit-scrollbar-track {
+        background: var(--bg-body);
+        border-radius: 4px;
+    }
+
+    .card > div::-webkit-scrollbar-thumb {
+        background: var(--accent-secondary);
+        border-radius: 4px;
+    }
+
+    .card > div::-webkit-scrollbar-thumb:hover {
+        background: #d946ef;
+    }
+
+    /* Hover effect for table rows */
+    tbody tr:hover {
+        background: rgba(0, 243, 255, 0.05) !important;
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+</style>
 {% endblock %}

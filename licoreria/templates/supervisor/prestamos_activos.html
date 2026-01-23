@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Préstamos Activos | Supervisor{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2 style="margin: 0; display: flex; align-items: center; gap: 0.8rem;">
+            <i class="ph ph-hand-coins" style="color: var(--accent-primary);"></i>
+            Préstamos Activos
+        </h2>
+        <p style="color: #64748b; margin: 0.5rem 0 0 0;">Seguimiento y cobro de créditos otorgados.</p>
+    </div>
+    <a href="{% url 'index' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div
+    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: rgba(255,255,255,0.02); text-align: left;">
+                <th style="padding: 1.2rem; color: #94a3b8;">CÓDIGO</th>
+                <th style="padding: 1.2rem; color: #94a3b8;">CLIENTE</th>
+                <th style="padding: 1.2rem; color: #94a3b8;">FECHA</th>
+                <th style="padding: 1.2rem; color: #94a3b8;">TOTAL</th>
+                <th style="padding: 1.2rem; text-align: right; color: #94a3b8;">ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prest in prestamos %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.3s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.02)'"
+                onmouseout="this.style.background='transparent'">
+                <td style="padding: 1.2rem; font-family: monospace; font-weight: bold; color: var(--accent-primary);">
+                    #{{ prest.codigo_orden }}</td>
+                <td style="padding: 1.2rem;">
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 600;">{{ prest.cliente.nombre }}</span>
+                        <small style="color: #64748b;">Cupo: ${{ prest.cliente.limite_prestamo|floatformat:2 }}</small>
+                    </div>
+                </td>
+                <td style="padding: 1.2rem; color: #cbd5e1;">{{ prest.fecha|date:"d M Y" }}</td>
+                <td style="padding: 1.2rem; font-weight: bold; color: #60a5fa;">${{ prest.total|floatformat:2 }}</td>
+                <td style="padding: 1.2rem; text-align: right;">
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <a href="{% url 'detalle_orden' prest.id %}" class="btn btn-sm btn-outline-primary"
+                            style="padding: 0.5rem 0.8rem;">
+                            <i class="ph ph-eye"></i> Detalles
+                        </a>
+                        <form action="{% url 'marcar_orden_pagada' prest.id %}" method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-primary" style="padding: 0.5rem 1rem;">
+                                <i class="ph ph-money"></i> Cobrar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="padding: 4rem; text-align: center;">
+                    <i class="ph ph-safe"
+                        style="font-size: 3rem; color: #1e293b; display: block; margin-bottom: 1rem;"></i>
+                    <span style="color: #64748b;">No hay préstamos activos actualmente.</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

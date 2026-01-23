@@ -1,66 +1,343 @@
 {% extends 'base.html' %}
 
-{% block header_title %}Recompensas y Regalos{% endblock %}
+{% block title %}Catálogo de Recompensas | STARAX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rewards-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
+
+    .section-title {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .rewards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 4rem;
+    }
+
+    /* Panel-Like Card Design (Centered, Neon Border Top) */
+    .recompensa-card {
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        /* Match panel radius */
+        padding: 2rem;
+        text-align: center;
+        /* Match panel alignment */
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+
+    /* Top Gradient Border like Panel */
+    .recompensa-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    }
+
+    .recompensa-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent);
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+        /* Match panel glow */
+    }
+
+    /* Icon styling similar to panel */
+    .card-icon {
+        font-size: 3rem;
+        /* Match panel icon size */
+        margin-bottom: 1rem;
+        display: inline-block;
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+    }
+
+    .card-title {
+        color: white;
+        font-size: 1.3rem;
+        /* Slightly larger for differentiation */
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+
+    .card-desc {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+        min-height: 40px;
+    }
+
+    /* Points Price - Prominent like 'Stat Value' */
+    .points-price {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--accent-primary);
+        margin-bottom: 0.5rem;
+        line-height: 1;
+        text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+
+    .points-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--text-secondary);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Value Tag */
+    .value-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Improved Points Box (Glassmorphism + Panel Style) */
+    .user-points-container {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    .user-points-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.03), transparent);
+        pointer-events: none;
+    }
+
+    .points-icon-box {
+        background: rgba(16, 185, 129, 0.1);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    /* Small Buttons - Centered */
+    .btn-canjear-small {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        margin-top: auto;
+    }
+
+    .btn-active-small {
+        background: var(--accent-primary);
+        /* Cyan base */
+        color: black;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+
+    .btn-active-small:hover {
+        background: #06b6d4;
+        box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-incapable-small {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #64748b;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="display: flex; gap: 2rem;">
-    <!-- Formulario -->
-    <div
-        style="flex: 1; max-width: 400px; background: var(--bg-sidebar); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); height: fit-content;">
-        <h3 style="margin-top: 0; margin-bottom: 1.5rem;"><i class="ph ph-gift" style="color: var(--accent);"></i>
-            Otorgar Recompensa</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                {% for field in form %}
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">{{
-                        field.label }}</label>
-                    {{ field }}
-                </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                    Otorgar Regalo/Puntos
-                </button>
-            </div>
-        </form>
+<div class="rewards-page">
+
+    <!-- Header Actions -->
+    <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h2 style="margin: 0; font-size: 2rem;">Catálogo de Recompensas</h2>
+            <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Canjea tus puntos por beneficios exclusivos</p>
+        </div>
+        <a href="{% url 'panel_fidelidad' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Volver al Panel
+        </a>
     </div>
 
-    <!-- Lista -->
-    <div style="flex: 2;">
-        <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Registro de Beneficios</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Tipo</th>
-                    <th>Valor</th>
-                    <th>Vencimiento</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in recompensas %}
-                <tr>
-                    <td><strong>{{ r.cliente.nombre }}</strong></td>
-                    <td><span class="tag">{{ r.get_tipo_display }}</span></td>
-                    <td style="color: var(--accent); font-weight: bold;">{{ r.valor }}</td>
-                    <td>{{ r.fecha_vencimiento|default:"--" }}</td>
-                    <td>
-                        {% if r.utilizada %}
-                        <span style="color: var(--text-secondary);">Utilizada</span>
-                        {% else %}
-                        <span style="color: var(--success);">Disponible</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 2rem;">No hay recompensas otorgadas.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- User Points Summary (Refined Design) -->
+    <div class="user-points-container">
+        <div>
+            <div
+                style="color: var(--accent-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                <i class="ph ph-sparkle"></i> Tus Puntos Disponibles
+            </div>
+            <div
+                style="font-size: 4rem; font-weight: 900; color: white; text-shadow: 0 0 30px rgba(0, 243, 255, 0.4); line-height: 1;">
+                {{ puntos }}
+            </div>
+        </div>
+
+        <div class="points-icon-box">
+            <i class="ph ph-wallet" style="font-size: 2rem; color: #10b981;"></i>
+            <div>
+                <div style="font-weight: 700; color: white; font-size: 1.1rem;">Saldo Actual</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Listo para canjear</div>
+            </div>
+        </div>
     </div>
+
+    <!-- Sección A: Cupones de Efectivo -->
+    <div class="section-title">
+        <i class="ph ph-money" style="color: #10b981;"></i> Cupones de Efectivo
+    </div>
+
+    <div class="rewards-grid">
+        {% for item in cupones %}
+        <!-- Custom Border Color for Cash: Green -->
+        <div class="recompensa-card" style="border-top: 4px solid #10b981; border-color: rgba(16, 185, 129, 0.2);">
+
+            <div class="card-icon" style="color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                {{ item.icono }}
+            </div>
+
+            <h4 class="card-title">{{ item.nombre }}</h4>
+            <div class="points-price" style="color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                {{ item.costo_puntos }}
+            </div>
+            <div class="points-label">Puntos Requeridos</div>
+
+            <p class="card-desc">{{ item.descripcion }}</p>
+
+            <!-- Value centered -->
+            <div>
+                <span class="value-tag" style="color: #10b981; border-color: #10b981;">
+                    Valor: ${{ item.valor|floatformat:2 }}
+                </span>
+            </div>
+
+            <!-- Logic Button -->
+            {% if item.id in ids_activas %}
+            <button class="btn-canjear-small"
+                style="background: #334155; color: #94a3b8; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.1);"
+                disabled>
+                <i class="ph ph-check"></i> RECLAMADO
+            </button>
+            {% elif puntos >= item.costo_puntos %}
+            <form method="POST" action="{% url 'solicitar_canje' %}">
+                {% csrf_token %}
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit" class="btn-canjear-small"
+                    style="background: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">
+                    CANJEAR AHORA
+                </button>
+            </form>
+            {% else %}
+            <button class="btn-canjear-small btn-incapable-small" disabled>
+                SALDO INSUFICIENTE
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sección B: Descuentos Porcentuales -->
+    <div class="section-title">
+        <i class="ph ph-percent" style="color: #f59e0b;"></i> Descuentos Porcentuales
+    </div>
+
+    <div class="rewards-grid">
+        {% for item in porcentajes %}
+        <!-- Custom Border Color for Percent: Orange/Amber -->
+        <div class="recompensa-card" style="border-top: 4px solid #f59e0b; border-color: rgba(245, 158, 11, 0.2);">
+
+            <div class="card-icon" style="color: #f59e0b; text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);">
+                {{ item.icono }}
+            </div>
+
+            <h4 class="card-title">{{ item.nombre }}</h4>
+            <div class="points-price" style="color: #f59e0b; text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);">
+                {{ item.costo_puntos }}
+            </div>
+            <div class="points-label">Puntos Requeridos</div>
+
+            <p class="card-desc">{{ item.descripcion }}</p>
+
+            <div>
+                <span class="value-tag" style="color: #f59e0b; border-color: #f59e0b;">
+                    Valor: {{ item.valor|floatformat:0 }}% OFF
+                </span>
+            </div>
+
+            {% if item.id in ids_activas %}
+            <button class="btn-canjear-small"
+                style="background: #334155; color: #94a3b8; cursor: not-allowed; border: 1px solid rgba(255,255,255,0.1);"
+                disabled>
+                <i class="ph ph-check"></i> RECLAMADO
+            </button>
+            {% elif puntos >= item.costo_puntos %}
+            <form method="POST" action="{% url 'solicitar_canje' %}">
+                {% csrf_token %}
+                <input type="hidden" name="item_id" value="{{ item.id }}">
+                <button type="submit" class="btn-canjear-small"
+                    style="background: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);">
+                    CANJEAR AHORA
+                </button>
+            </form>
+            {% else %}
+            <button class="btn-canjear-small btn-incapable-small" disabled>
+                SALDO INSUFICIENTE
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
 {% endblock %}

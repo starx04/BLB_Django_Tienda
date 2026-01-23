@@ -1,47 +1,437 @@
 {% extends 'base.html' %}
 
-{% block title %}Tu Carrito | Licorería Premium{% endblock %}
+{% block title %}Tu Carrito Premium | STARAX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cart-container {
+        animation: slideUp 0.6s ease;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 3rem;
+    }
+
+    /* Glass Effect & Gradients */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .cart-table-wrapper {
+        margin-bottom: 2rem;
+    }
+
+    .cart-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .cart-table th {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1.5rem 2rem;
+        text-align: left;
+        color: var(--text-secondary);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.8rem;
+    }
+
+    .cart-table td {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        vertical-align: middle;
+        background: transparent;
+        transition: background 0.2s;
+    }
+    
+    .cart-table tr:hover td {
+        background: rgba(255, 255, 255, 0.01);
+    }
+    
+    .cart-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .item-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .item-image {
+        width: 70px;
+        height: 70px;
+        background: #1a1a1a;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 5px;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        background: rgba(0,0,0,0.4);
+        border-radius: 50px;
+        padding: 5px;
+        border: 1px solid rgba(255,255,255,0.1);
+        width: fit-content;
+        margin: 0 auto;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .qty-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.05);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .qty-btn:hover {
+        background: white;
+        color: black;
+        transform: scale(1.1);
+    }
+    
+    .qty-btn.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .qty-val {
+        font-weight: 700;
+        width: 40px;
+        text-align: center;
+        font-size: 1rem;
+        background: transparent;
+        border: none;
+        color: white;
+    }
+
+    /* Premium Summary Card */
+    .summary-card {
+        background: radial-gradient(circle at top right, rgba(20, 20, 30, 0.8), rgba(10, 10, 10, 0.95));
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 2.5rem;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Decorative Glow behind summary */
+    .summary-card::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: var(--accent-primary);
+        filter: blur(100px);
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 1rem;
+        color: #9ca3af;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .credit-badge {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .total-amount {
+        font-size: 3rem;
+        font-weight: 900;
+        color: white;
+        margin: 2rem 0;
+        text-align: right;
+        text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        position: relative;
+        z-index: 1;
+    }
+
+    /* BRIGHT NEON BUTTON */
+    .btn-minimal {
+        background: var(--accent-primary);
+        color: black;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 1.2rem;
+        width: 100%;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+    
+    .btn-minimal:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 0 40px rgba(0, 243, 255, 0.6);
+    }
+    
+    .btn-minimal i {
+        font-size: 1.2rem;
+    }
+
+    .warning-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: right;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1 style="color: var(--accent-color); margin-bottom: 2rem;">Tu Pedido Actual</h1>
-
-{% if items %}
-<table>
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Cant</th>
-            <th>Precio Unit.</th>
-            <th>Subtotal</th>
-            <th>Acción</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td>{{ item.producto.nombre }}</td>
-            <td>{{ item.cantidad }}</td>
-            <td>${{ item.producto.precio|floatformat:2 }}</td>
-            <td>${{ item.subtotal|floatformat:2 }}</td>
-            <td><a href="{% url 'eliminar_carrito' item.producto.id %}" class="btn btn-danger"
-                    style="padding: 6px 12px; font-size: 0.9rem;">Eliminar</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<div style="text-align: right; margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
-    <h2 style="font-size: 2.5rem; margin: 0 0 1rem 0; color: var(--price-color);">Total: ${{ total|floatformat:2 }}</h2>
-    <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-        <a href="{% url 'index' %}" class="btn btn-secondary">Seguir Comprando</a>
-        <a href="{% url 'checkout_whatsapp' %}" class="btn btn-primary" style="background: #25D366;">Enviar Pedido por
-            WhatsApp 📱</a>
+<div class="cart-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 3rem 0;">
+        <div>
+            <h1 style="font-size: 3rem; font-weight: 900; margin: 0; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Tu Carrito</h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Estás a un paso de disfrutar lo mejor.</p>
+        </div>
+        <a href="{% url 'catalogo_general' %}" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 600; opacity: 0.7; transition: opacity 0.2s;">
+            <i class="ph ph-arrow-left"></i> Seguir Comprando
+        </a>
     </div>
+
+    {% if items %}
+    <div class="glass-panel cart-table-wrapper">
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th style="padding-left: 2rem;">Producto</th>
+                    <th style="text-align: center;">Cantidad</th>
+                    <th style="text-align: right;">Precio Unit.</th>
+                    <th style="text-align: right; padding-right: 2rem;">Total</th>
+                    <th style="width: 50px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr {% if item.error_stock %}style="background: rgba(239, 68, 68, 0.05); border-left: 2px solid #ef4444;"{% endif %}>
+                    <td>
+                        <div class="item-info">
+                            <div class="item-image" style="position: relative;">
+                                {% if item.item.url_imagen_externa %}
+                                <img src="{{ item.item.url_imagen_externa }}" alt="{{ item.item.nombre }}">
+                                {% elif item.item.imagen_url %}
+                                <img src="{{ item.item.imagen_url }}" alt="{{ item.item.nombre }}">
+                                {% elif item.item.imagen %}
+                                <img src="{{ item.item.imagen.url }}" alt="{{ item.item.nombre }}">
+                                {% else %}
+                                <i class="ph ph-image" style="font-size: 1.5rem; opacity: 0.5; color: white;"></i>
+                                {% endif %}
+                                
+                                {% if item.error_stock %}
+                                <div style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; font-weight: 700;">ERROR</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.1rem; color: white;">{{ item.item.nombre }}</h4>
+                                {% if item.error_stock %}
+                                <div style="color: #ef4444; font-size: 0.8rem; font-weight: 700; margin-top: 2px;">
+                                    <i class="ph ph-warning"></i> {{ item.msg_stock }}
+                                </div>
+                                {% endif %}
+                                {% if item.tipo == 'lic' and item.item.categoria %}
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                                    {{ item.item.categoria.nombre }}
+                                </div>
+                                {% endif %}
+                                <div style="font-size: 0.75rem; color: var(--accent-secondary); font-weight: 700; margin-top: 4px; text-transform: uppercase;">
+                                    {{ item.seccion }}
+                                </div>
+                            </div>
+                        </div>
+                      </td>
+                    <td>
+                        <div class="quantity-control">
+                            <!-- Botón Menos -->
+                            {% if item.cantidad == 1 %}
+                            <a href="{% url 'eliminar_item_carrito' item.tipo item.item_id %}" class="qty-btn" title="Eliminar">
+                                <i class="ph ph-trash"></i>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'quitar_uno_carrito' item.tipo item.item_id %}" class="qty-btn" title="Restar">
+                                <i class="ph ph-minus"></i>
+                            </a>
+                            {% endif %}
+
+                            <!-- Valor -->
+                            <input type="text" class="qty-val" value="{{ item.cantidad }}" readonly>
+
+                            <!-- Botón Más -->
+                            {% if item.cantidad < item.item.stock %}
+                            <a href="{% url 'agregar_carrito' item.tipo item.item_id %}" class="qty-btn" title="Sumar">
+                                <i class="ph ph-plus"></i>
+                            </a>
+                            {% else %}
+                            <span class="qty-btn disabled" title="Stock Máximo Alcanzado">
+                                <i class="ph ph-prohibit"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td style="text-align: right; color: var(--text-secondary); font-weight: 600;">
+                        ${{ item.item.precio|floatformat:2 }}
+                    </td>
+                    <td style="text-align: right; padding-right: 2rem; color: white; font-weight: 800; font-size: 1.1rem;">
+                        ${{ item.subtotal|floatformat:2 }}
+                    </td>
+                    <td>
+                        <a href="{% url 'eliminar_item_carrito' item.tipo item.item_id %}" style="color: #ef4444; font-size: 1.2rem; opacity: 0.7; transition: opacity 0.2s;" title="Eliminar">
+                            <i class="ph ph-x-circle"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Summary Section -->
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem;">
+        <div><!-- Spacer for potential future coupons/notes --></div>
+        
+        <div class="summary-card">
+            <h3 style="margin-top: 0; font-size: 1.5rem; margin-bottom: 2rem;">Resumen de Orden</h3>
+            
+            {% if cliente %}
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="summary-row" style="margin-bottom: 5px;">
+                    <span style="font-size: 0.9rem;">Límite Crédito Total</span>
+                    <span style="font-size: 0.9rem;">${{ limite_total|floatformat:2 }}</span>
+                </div>
+                
+                     
+
+                <div class="summary-row" style="margin-top: 10px; align-items: center;">
+                    <span style="color: white; font-weight: 600;">Cupo Disponible</span>
+                    <div class="credit-badge" 
+                         style="{% if credito_disponible < 0 %}color: var(--accent-danger); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);{% endif %}">
+                        ${{ credito_disponible|floatformat:2 }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="summary-row">
+                <span>Subtotal Productos</span>
+                <span>${{ total|floatformat:2 }}</span>
+            </div>
+
+            <div class="total-amount">
+                ${{ total|floatformat:2 }}
+            </div>
+
+            {% if cliente and total > credito_disponible %}
+            <div class="warning-box">
+                <div style="color: #Ffffff; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                    {% if credito_disponible < 0 %}
+                    <i class="ph ph-warning-octagon"></i> Cupo Excedido
+                    {% else %}
+                    <i class="ph ph-warning-circle"></i> Cupo Insuficiente
+                    {% endif %}
+                </div>
+                <div style="font-size: 0.85rem; color: #fca5a5; margin-top: 5px;">
+                    {% if credito_disponible < 0 %}
+                    Tienes una deuda pendiente que supera tu límite actual.
+                    {% else %}
+                    El disponible es menor al total de esta compra.
+                    {% endif %}
+                    No podrás solicitar un préstamo.
+                </div>
+            </div>
+            {% endif %}
+
+            {% if hay_errores_stock %}
+            <div class="warning-box" style="margin-bottom: 0.5rem; border-color: #ef4444; background: rgba(239,68,68,0.05);">
+                <div style="color: #ef4444; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                    <i class="ph ph-warning-octagon"></i> Stock Insuficiente
+                </div>
+                <div style="font-size: 0.85rem; color: #fca5a5; margin-top: 5px;">
+                    Ajusta las cantidades marcadas en rojo para continuar.
+                </div>
+            </div>
+            
+            <button onclick="Swal.fire('Atención', 'Hay productos con cantidad superior al stock disponible. Por favor ajústalos.', 'error')" class="btn-minimal" style="opacity: 0.5; cursor: not-allowed; border-color: #ef4444; color: #ef4444;">
+                Corregir Carrito <i class="ph ph-warning"></i>
+            </button>
+            {% else %}
+            <a href="{% url 'resumen_checkout' %}" class="btn-minimal">
+                Confirmar Orden <i class="ph ph-arrow-right"></i>
+            </a>
+            {% endif %}
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <span style="font-size: 0.8rem; color: rgba(255,255,255,0.3);">
+                    <i class="ph ph-shield-check"></i> Transacción cifrada por STARAX
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="glass-panel" style="text-align: center; padding: 6rem; max-width: 600px; margin: 4rem auto;">
+        <div style="width: 100px; height: 100px; background: rgba(0, 255, 136, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem auto; box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);">
+            <i class="ph ph-shopping-cart" style="font-size: 3rem; color: #00ff88;"></i>
+        </div>
+        <h2 style="font-size: 2rem; margin-bottom: 1rem; color: white;">Tu carrito está vacío</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2.5rem; font-size: 1.1rem;">
+            Nuestras estanterías están llenas de opciones premium esperando por ti.
+        </p>
+        <a href="{% url 'catalogo_general' %}" class="btn-neon" style="display: inline-flex; width: auto; padding: 1rem 3rem;">
+            Ir al Catálogo
+        </a>
+    </div>
+    {% endif %}
+
 </div>
-{% else %}
-<div style="text-align: center; padding: 4rem;">
-    <h2 style="color: #64748b; margin-bottom: 2rem;">Tu carrito está vacío 🛒</h2>
-    <a href="{% url 'index' %}" class="btn btn-primary">Volver a la tienda</a>
-</div>
-{% endif %}
 {% endblock %}

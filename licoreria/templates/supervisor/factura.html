@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Factura de Venta | BLB Tienda{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 3rem;
+        max-width: 800px;
+        margin: 2rem auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .invoice-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding-bottom: 2rem;
+    }
+
+    .company-info h2 {
+        color: var(--accent-primary);
+        font-weight: 800;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .info-block label {
+        display: block;
+        color: #64748b;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-block p {
+        margin: 0;
+        font-weight: 600;
+        color: white;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 3rem;
+    }
+
+    .invoice-table th {
+        text-align: left;
+        color: #64748b;
+        font-size: 0.8rem;
+        padding: 1rem;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .invoice-table td {
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #cbd5e1;
+    }
+
+    .total-section {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .total-row {
+        display: flex;
+        gap: 2rem;
+        font-size: 1rem;
+    }
+
+    .total-row.grand-total {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent-primary);
+        margin-top: 1rem;
+    }
+
+    .credit-badge {
+        background: rgba(0, 255, 157, 0.1);
+        color: var(--accent-primary);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 255, 157, 0.2);
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    @media print {
+
+        .btn,
+        .sidebar,
+        .header-actions {
+            display: none !important;
+        }
+
+        .invoice-card {
+            box-shadow: none;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        .info-block p,
+        .invoice-table td,
+        h2 {
+            color: black !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-actions"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <button onclick="history.back()" class="btn btn-secondary">← Volver</button>
+    <div style="display: flex; gap: 1rem;">
+        <button onclick="window.print()" class="btn btn-secondary">
+            <i class="ph ph-printer"></i> Imprimir
+        </button>
+        {% if prestamo.estado_solicitud == 'APROB' %}
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="ph ph-hand-coins"></i> Confirmar Pago y Cerrar
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="invoice-card">
+    <div class="invoice-header">
+        <div class="company-info">
+            <h2>{{ licoreria.nombre }}</h2>
+            <p style="color: #64748b; font-size: 0.85rem; margin-top: 5px;">
+                {{ licoreria.direccion }}<br>
+                RUC: {{ licoreria.ruc }}<br>
+                Telf: {{ licoreria.telefono }}
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <h3 style="margin: 0; color: #64748b;">FACTURA DE PRÉSTAMO</h3>
+            <p style="font-weight: 700; color: var(--accent-primary); margin: 5px 0;">#PR-{{ prestamo.id }}-2026</p>
+            <p style="font-size: 0.8rem; color: #64748b;">Fecha: {{ fecha|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-block">
+            <label>Cliente</label>
+            <p>{{ cliente.nombre }}</p>
+            <p style="font-size: 0.8rem; color: #64748b;">{{ cliente.email }}</p>
+        </div>
+        <div class="info-block" style="text-align: right;">
+            <label>Método de Pago</label>
+            <p>Crédito / Préstamo BLB</p>
+            <p style="font-size: 0.8rem; color: #10b981;">Estado: {{ prestamo.get_estado_solicitud_display }}</p>
+        </div>
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Descripción del Préstamo / Productos</th>
+                <th style="text-align: right;">Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ prestamo.descripcion }}</td>
+                <td style="text-align: right; font-weight: 700;">${{ prestamo.valor|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-row">
+            <span style="color: #64748b;">Subtotal:</span>
+            <span>${{ prestamo.valor|floatformat:2 }}</span>
+        </div>
+        <div class="total-row">
+            <span style="color: #64748b;">IVA (0%):</span>
+            <span>$0.00</span>
+        </div>
+        <div class="total-row grand-total">
+            <span>TOTAL:</span>
+            <span>${{ prestamo.valor|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    {% if prestamo.estado_solicitud == 'DEVU' %}
+    <div class="credit-badge">
+        <i class="ph ph-trend-up"></i>
+        ¡Pago Exitoso! Tu nuevo límite de crédito ha sido actualizado a <strong>${{
+            cliente.limite_prestamo|floatformat:2 }}</strong>.
+    </div>
+    {% else %}
+    <div class="credit-badge"
+        style="background: rgba(251, 191, 36, 0.05); color: #fbbf24; border-color: rgba(251, 191, 36, 0.2);">
+        <i class="ph ph-info"></i>
+        Este documento es un resumen de pago pendiente. Al confirmar, tu límite de crédito aumentará un 10%.
+    </div>
+    {% endif %}
+
+    <div
+        style="margin-top: 4rem; text-align: center; border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 2rem;">
+        <p style="color: #64748b; font-size: 0.8rem;">Gracias por tu preferencia en BLB Tienda. Mantén un buen historial
+            para aumentar tu crédito.</p>
+    </div>
+</div>
+{% endblock %}

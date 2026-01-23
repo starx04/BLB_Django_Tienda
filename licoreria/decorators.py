@@ -8,8 +8,8 @@ from django.shortcuts import redirect
 from django.contrib import messages
 
 def es_cliente(user):
-    """Verifica si el usuario pertenece al grupo Cliente"""
-    return user.groups.filter(name='Cliente').exists()
+    """Verifica si el usuario pertenece al grupo Cliente o es staff/superuser"""
+    return user.groups.filter(name='Cliente').exists() or user.is_superuser or user.is_staff
 
 def es_bodeguero(user):
     """Verifica si el usuario pertenece al grupo Bodeguero"""

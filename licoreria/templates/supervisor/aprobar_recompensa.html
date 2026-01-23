@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Aprobar Recompensa{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <h2 style="margin-bottom: 2rem;">Revisar Solicitud de Recompensa</h2>
+
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="margin-top: 0; color: var(--accent-primary);">Información del Cliente</h3>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem;">
+            <div>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Cliente</p>
+                <p style="margin: 0.5rem 0 0 0; font-weight: bold;">{{ recompensa.cliente.nombre }}</p>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Total Gastado</p>
+                <p style="margin: 0.5rem 0 0 0; font-weight: bold; color: var(--accent-secondary);">${{
+                    recompensa.cliente.total_gastado|floatformat:2 }}</p>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Nivel</p>
+                <p style="margin: 0.5rem 0 0 0; font-weight: bold;">{{ recompensa.cliente.nivel_recompensa }}</p>
+            </div>
+            <div>
+                <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Fecha Solicitud</p>
+                <p style="margin: 0.5rem 0 0 0;">{{ recompensa.fecha_solicitud|date:"d M Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 2rem;">
+        <h3 style="margin-top: 0; color: var(--accent-primary);">Detalles de la Recompensa</h3>
+        <div style="margin-top: 1rem;">
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Tipo</p>
+            <p style="margin: 0.5rem 0 1rem 0; font-weight: bold;">{{ recompensa.get_tipo_display }}</p>
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Descripción</p>
+            <p style="margin: 0.5rem 0 1rem 0;">{{ recompensa.descripcion }}</p>
+
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">Valor</p>
+            <p style="margin: 0.5rem 0 0 0; font-size: 1.5rem; font-weight: bold; color: var(--accent-primary);">${{
+                recompensa.valor }}</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="card">
+            <h3 style="margin-top: 0;">Decisión</h3>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Notas (opcional)</label>
+                <textarea name="notas" class="form-control" rows="3"
+                    placeholder="Agrega notas sobre tu decisión..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" name="accion" value="aprobar" class="btn btn-primary" style="flex: 1;"
+                    onclick="return confirm('¿Aprobar esta recompensa?')">
+                    ✓ Aprobar
+                </button>
+                <button type="submit" name="accion" value="rechazar" class="btn btn-danger" style="flex: 1;"
+                    onclick="return confirm('¿Rechazar esta solicitud?')">
+                    ✗ Rechazar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="{% url 'gestion_recompensas' %}" class="btn btn-secondary">← Volver a Recompensas</a>
+    </div>
+</div>
+{% endblock %}

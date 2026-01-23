@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+
+{% block title %}Importación Profesional | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .search-box-premium {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 3rem;
+        border-radius: 30px;
+        text-align: center;
+        animation: slideDown 0.6s ease;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .licor-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        position: relative;
+    }
+
+    .licor-item:hover {
+        border-color: var(--accent-primary);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.2);
+    }
+
+    .licor-photo {
+        height: 240px;
+        width: 100%;
+        background-color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid var(--border);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .licor-photo img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+    }
+
+    .licor-item:hover .licor-photo img {
+        transform: scale(1.05);
+    }
+
+    .licor-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        z-index: 2;
+    }
+
+    .licor-details {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .licor-brand {
+        font-size: 0.8rem;
+        color: var(--accent-primary);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .licor-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .data-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+
+    .data-pill {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .data-pill i {
+        color: var(--accent-primary);
+    }
+
+    .import-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: auto;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .field-group label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .field-group input {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border);
+        padding: 10px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+    }
+
+    .category-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .cat-tab {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cat-tab.active {
+        background: var(--accent-primary);
+        color: black;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+</style>
+
+<script id="categories-data" type="application/json">
+    [
+        {% for cat in categorias %}
+        {"id": {{ cat.id }}, "nombre": "{{ cat.nombre }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+</script>
+
+<script>
+    const SERVER_CATEGORIES = JSON.parse(document.getElementById('categories-data').textContent);
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="import-container">
+    <div class="search-box-premium">
+        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1rem;">
+            <i class="ph ph-barcode" style="color: var(--accent-primary);"></i> Importador Profesional
+        </h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Ingresa el nombre del producto o escanea el código
+            de barras (EAN/UPC)</p>
+
+        <div style="max-width: 600px; margin: 0 auto; display: flex; gap: 1rem;">
+            <input type="text" id="searchInput" placeholder="Ej: Red Label o 5000281005408"
+                style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 15px 25px; border-radius: 15px; color: white; font-size: 1.1rem; cursor: text !important; pointer-events: auto !important; position: relative; z-index: 10;">
+            <button onclick="searchAPI()" id="searchBtn" class="btn btn-primary" style="padding: 0 30px;">
+                <i class="ph ph-magnifying-glass"></i> Consultar
+            </button>
+        </div>
+
+        <div class="category-tabs" style="margin-top: 2rem;">
+            <button class="cat-tab active" onclick="selectCat(this, '')">Todos</button>
+            <button class="cat-tab" onclick="selectCat(this, 'whiskys')">Whiskys</button>
+            <button class="cat-tab" onclick="selectCat(this, 'ron')">Ron</button>
+            <button class="cat-tab" onclick="selectCat(this, 'vodka')">Vodka</button>
+            <button class="cat-tab" onclick="selectCat(this, 'ginebra')">Ginebra</button>
+        </div>
+    </div>
+
+    <div id="resultsContainer" class="results-grid">
+        <!-- Resultados aquí -->
+    </div>
+</div>
+
+<script>
+    let currentCat = '';
+
+    function selectCat(btn, cat) {
+        document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCat = cat;
+        if (document.getElementById('searchInput').value) {
+            searchAPI();
+        }
+    }
+
+    async function searchAPI() {
+        const query = document.getElementById('searchInput').value;
+        if (!query) return;
+
+        const container = document.getElementById('resultsContainer');
+        const btn = document.getElementById('searchBtn');
+
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem;"><i class="ph ph-spinner ph-spin" style="font-size: 3rem; color: var(--accent-primary);"></i><p style="margin-top: 1rem; color: var(--text-secondary);">Consultando Open Food Facts Global...</p></div>';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(`/api/importar/licores/buscar/?q=${encodeURIComponent(query)}&cat=${currentCat}`);
+
+            if (!response.ok) {
+                let errorMsg = 'Error en el servidor';
+                try {
+                    const errData = await response.json();
+                    errorMsg = errData.error || errorMsg;
+                } catch (e) {
+                    console.error('No se pudo parsear error JSON:', e);
+                }
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem;"><i class="ph ph-warning-circle" style="font-size: 3rem; color: #ff0055;"></i><p style="margin-top: 1rem; color: white;">Error: ${errorMsg}</p></div>`;
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data && Array.isArray(data) && data.length > 0) {
+                renderResults(data);
+            } else {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem;"><i class="ph ph-warning-circle" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i><p style="margin-top: 1rem; color: var(--text-secondary);">No se encontraron licores para esta búsqueda.</p></div>';
+            }
+        } catch (error) {
+            console.error('Fallo en fetch:', error);
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem;"><i class="ph ph-wifi-slash" style="font-size: 3rem; color: #ff0055;"></i><p style="margin-top: 1rem; color: white;">Fallo al conectar con el servidor. Revisa tu conexión.</p></div>`;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function renderResults(results) {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = '';
+
+        results.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'licor-item';
+            card.style.animation = `slideUp 0.5s ease forwards ${index * 0.1}s`;
+            card.style.opacity = '0';
+
+            const defaultImg = item.imagen || 'https://via.placeholder.com/400x300?text=Sin+Imagen+OFF';
+
+            card.innerHTML = `
+                <div class="licor-photo">
+                    <div class="licor-badge">${item.cantidad || 'Std Unit'}</div>
+                    <img src="${defaultImg}" alt="${item.nombre}" onerror="this.src='https://via.placeholder.com/400x300?text=Error+Imagen'">
+                </div>
+                
+                <div class="licor-details">
+                    <div class="licor-brand">${item.marca}</div>
+                    <h3 class="licor-title">${item.nombre}</h3>
+
+                    <div class="data-grid">
+                        <div class="data-pill" title="Grados de Alcohol">
+                            <i class="ph ph-drop"></i> ${item.grados_alcohol}% Vol.
+                        </div>
+                        <div class="data-pill" title="Origen">
+                            <i class="ph ph-globe-hemisphere-west"></i> ${item.origen.split(',')[0]}
+                        </div>
+                    </div>
+
+                    <form onsubmit="importLiquor(event, ${index})">
+                        {% csrf_token %}
+                        <input type="hidden" name="nombre" value="${item.nombre}">
+                        <input type="hidden" name="marca" value="${item.marca}">
+                        <input type="hidden" name="codigo_barras" value="${item.id}">
+                        <input type="hidden" name="url_imagen_externa" value="${defaultImg}">
+                        <input type="hidden" name="descripcion_tecnica" value="${item.descripcion_tecnica}">
+                        <input type="hidden" name="categoria_api" value="${item.categoria_api}">
+                        <input type="hidden" name="origen" value="${item.origen}">
+                        <input type="hidden" name="grados_alcohol" value="${item.grados_alcohol}">
+
+                        <div class="import-fields">
+                             <div class="field-group" style="grid-column: 1/-1;">
+                                <label>Categoría Sistema</label>
+                                <select name="categoria" required>
+                                    <option value="">Selecciona...</option>
+                                    ${SERVER_CATEGORIES.map(c => `
+                                        <option value="${c.id}" ${c.id == item.categoria_sugerida ? 'selected' : ''}>
+                                            ${c.nombre}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                             </div>
+                             <div class="field-group">
+                                <label>Precio ($)</label>
+                                <input type="number" name="precio" value="${item.precio_sugerido}" step="0.01" required>
+                             </div>
+                             <div class="field-group">
+                                <label>Stock Inicial</label>
+                                <input type="number" name="stock" value="0" required>
+                             </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding:15px; margin-top:1.5rem; font-weight:800; display:flex; align-items:center; justify-content:center; gap: 10px;">
+                            <i class="ph ph-plus-circle" style="font-size:1.4rem;"></i> IMPORTAR LICOR
+                        </button>
+                    </form>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    async function importLiquor(event, index) {
+        event.preventDefault();
+        const form = event.target;
+        const btn = form.querySelector('button');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+
+        try {
+            const response = await fetch('/api/licores-off/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                btn.style.background = 'var(--accent-success)';
+                btn.style.borderColor = 'var(--accent-success)';
+                btn.innerHTML = '<i class="ph ph-check"></i> ¡Éxito!';
+
+                Toastify({
+                    text: "Licor importado correctamente",
+                    duration: 3000,
+                    style: { background: "var(--accent-success)" }
+                }).showToast();
+
+                setTimeout(() => {
+                    window.location.href = "{% url 'gestion_productos' %}";
+                }, 1500);
+            } else {
+                const err = await response.json();
+                console.error(err);
+                btn.style.borderColor = 'var(--accent-danger)';
+                Toastify({
+                    text: "Error al importar (Verifica datos)",
+                    duration: 3000,
+                    style: { background: "var(--accent-danger)" }
+                }).showToast();
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ph ph-plus-circle"></i> IMPORTAR LICOR';
+                }, 2000);
+            }
+        } catch (error) {
+            console.error(error);
+            Toastify({ text: "Error de red", style: { background: "var(--accent-danger)" } }).showToast();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-plus-circle"></i> IMPORTAR LICOR';
+        }
+    }
+</script>
+{% endblock %}

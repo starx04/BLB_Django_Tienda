@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Mundo Cocteles{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Barra de herramientas */
+    .toolbar {
+        background: var(--bg-card);
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 250px;
+        position: relative;
+    }
+
+    .search-input i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+    }
+
+    .search-input input {
+        width: 100%;
+        padding: 12px 1rem 12px 3rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(20, 20, 20, 0.5);
+        color: white;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    }
+
+    .filter-select {
+        padding: 12px 2rem 12px 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(20, 20, 20, 0.5);
+        color: white;
+        cursor: pointer;
+        min-width: 180px;
+        transition: all 0.3s;
+    }
+
+    .filter-select:hover {
+        border-color: var(--accent-primary);
+    }
+
+    /* Grid de Cocteles */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .product-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+    }
+
+    .card-img {
+        height: 220px;
+        width: 100%;
+        background: #101010;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .product-card:hover .card-img img {
+        transform: scale(1.1);
+    }
+
+    .stock-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-content {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent-secondary);
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .title {
+        font-size: 1.1rem;
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+        line-height: 1.4;
+        color: white;
+    }
+
+    .price {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--accent-success);
+        text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+    }
+
+    .add-btn {
+        background: transparent;
+        border: 1px solid var(--accent-primary);
+        color: var(--accent-primary);
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .add-btn:hover {
+        background: var(--accent-primary);
+        color: black;
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 0 15px var(--accent-primary);
+    }
+
+    .card-footer {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="GET" class="toolbar">
+    <div class="search-input">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="busqueda" placeholder="Buscar cocteles..."
+            value="{{ request.GET.busqueda|default:'' }}">
+    </div>
+
+    <!-- Filtro de Precio -->
+    <div style="display: flex; gap: 10px; align-items: center; color: white;">
+        <input type="number" name="precio_max" placeholder="Precio Max" value="{{ request.GET.precio_max|default:'' }}"
+            style="width: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(20, 20, 20, 0.5); color: white;">
+    </div>
+
+    <select name="categoria" class="filter-select" onchange="this.form.submit()">
+        <option value="">Todas las Categorias</option>
+        {% for cat in categorias %}
+        <option value="{{ cat }}">
+            {{ cat }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary" style="padding: 0 1.5rem;">
+        <i class="ph ph-funnel"></i> Filtrar
+    </button>
+
+    {% if request.GET.busqueda or request.GET.categoria or request.GET.precio_max %}
+    <a href="{% url 'cocteles_catalogo' %}" class="btn btn-secondary">
+        <i class="ph ph-x"></i> Limpiar
+    </a>
+    {% endif %}
+</form>
+
+<div class="products-grid">
+    {% for coctel in cocteles %}
+    <div class="product-card">
+        <div class="card-img">
+            {% if coctel.imagen_url %}
+            <img src="{{ coctel.imagen_url }}" alt="{{ coctel.nombre }}">
+            {% else %}
+            <i class="ph ph-martini" style="font-size: 4rem; color: var(--text-secondary);"></i>
+            {% endif %}
+
+            <div class="stock-badge {% if coctel.stock < 5 %}stock-low{% endif %}">
+                {% if coctel.stock > 0 %}
+                {{ coctel.stock }} disponibles
+                {% else %}
+                Agotado
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-content">
+            <div class="brand">{{ coctel.categoria|default:"Coctel" }}</div>
+            <h3 class="title">{{ coctel.nombre }}</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 1rem;">
+                <!-- Opcional: descripcion corta o ingredientes -->
+                {{ coctel.ingredientes|truncatechars:100 }}
+            </p>
+
+            <div class="card-footer">
+                <div class="price">${{ coctel.precio }}</div>
+                {% if coctel.stock > 0 %}
+                <a href="{% url 'agregar_carrito' 'coc' coctel.id %}" class="add-btn" title="Agregar al carrito">
+                    <i class="ph ph-plus"></i>
+                </a>
+                {% else %}
+                <button class="add-btn"
+                    style="border-color: var(--text-secondary); color: var(--text-secondary); cursor: not-allowed;"
+                    disabled>
+                    <i class="ph ph-prohibit"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+        <i class="ph ph-magnifying-glass" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <h3>No se encontraron cocteles</h3>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

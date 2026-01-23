@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Auditoría de Sistema | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .log-entry {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.8rem;
+        display: grid;
+        grid-template-columns: 180px 150px 1fr 120px;
+        gap: 1rem;
+        align-items: center;
+        border-left: 3px solid var(--accent-primary);
+        transition: all 0.2s;
+    }
+
+    .log-entry:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .log-time {
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    .log-user {
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .log-action {
+        font-weight: 600;
+        color: var(--accent-primary);
+    }
+
+    .log-details {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .log-ip {
+        font-size: 0.75rem;
+        color: #475569;
+        text-align: right;
+    }
+
+    .modulo-tag {
+        font-size: 0.7rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header-actions"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+    <div>
+        <h1 style="margin: 0;"><i class="ph ph-fingerprint"></i> Registro de Auditoría</h1>
+        <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Trazabilidad técnica y operativa de la tienda</p>
+    </div>
+    <button onclick="history.back()" class="btn btn-secondary">← Volver</button>
+</div>
+
+<div class="table-container" style="background: transparent; border: none; padding: 0;">
+    {% for log in logs %}
+    <div class="log-entry">
+        <div class="log-time">{{ log.fecha|date:"d/m/Y H:i:s" }}</div>
+        <div class="log-user">
+            <i class="ph ph-user-circle"></i> {{ log.usuario|default:"SISTEMA" }}
+        </div>
+        <div>
+            <span class="modulo-tag">{{ log.modulo }}</span>
+            <div class="log-action">{{ log.accion }}</div>
+            <div class="log-details">{{ log.detalles|default:"--" }}</div>
+        </div>
+        <div class="log-ip">{{ log.ip_address|default:"Local" }}</div>
+    </div>
+    {% empty %}
+    <div style="text-align: center; padding: 5rem;">
+        <i class="ph ph-ghost" style="font-size: 4rem; opacity: 0.1;"></i>
+        <p style="color: var(--text-secondary); margin-top: 1rem;">No hay registros de auditoría disponibles.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 2rem; color: #475569; font-size: 0.8rem; text-align: center;">
+    Mostrando los últimos 200 eventos globales.
+</div>
+{% endblock %}

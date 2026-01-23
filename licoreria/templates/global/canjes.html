@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}Canjes Globales | Licorería{% endblock %}
+
+{% block header_title %}Registro Global de Canjes{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="color: var(--accent-primary); margin: 0; font-size: 2rem; font-weight: 700;">
+                <i class="ph ph-ticket" style="margin-right: 10px;"></i>
+                Registro Global de Canjes
+            </h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                Historial completo de todos los canjes de puntos realizados
+            </p>
+        </div>
+        <div
+            style="background: rgba(0, 243, 255, 0.1); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--accent-primary);">
+            <div
+                style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">
+                Total Registros</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: var(--accent-primary);">{{ canjes.count }}</div>
+        </div>
+    </div>
+
+    <div class="card"
+        style="background: var(--bg-card); border: 1px solid var(--border); padding: 0; border-radius: 16px; overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table class="table" style="margin: 0; color: var(--text-primary);">
+                <thead>
+                    <tr>
+                        <th style="min-width: 180px;">Cliente</th>
+                        <th style="min-width: 120px;">Tipo</th>
+                        <th style="min-width: 250px;">Descripción</th>
+                        <th style="min-width: 100px; text-align: center;">Puntos</th>
+                        <th style="min-width: 120px;">Código</th>
+                        <th style="min-width: 140px;">Estado</th>
+                        <th style="min-width: 150px;">Fecha Solicitud</th>
+                        <th style="min-width: 150px;">Fecha Aprobación</th>
+                        <th style="min-width: 100px; text-align: center;">Utilizada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for canje in canjes %}
+                    <tr style="transition: all 0.3s ease;">
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div
+                                    style="width: 35px; height: 35px; background: var(--accent-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 0.9rem;">
+                                    {{ canje.cliente.nombre|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: white;">{{ canje.cliente.nombre }}</div>
+                                    {% if canje.cliente.user %}
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">@{{ canje.cliente.user.username }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if canje.tipo == 'DES' %}
+                            <span
+                                style="background: rgba(16, 185, 129, 0.15); color: var(--accent-success); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-success);">
+                                <i class="ph ph-coins"></i> Cupón
+                            </span>
+                            {% elif canje.tipo == 'POR' %}
+                            <span
+                                style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #fbbf24;">
+                                <i class="ph ph-percent"></i> Descuento
+                            </span>
+                            {% elif canje.tipo == 'REG' %}
+                            <span
+                                style="background: rgba(188, 19, 254, 0.15); color: var(--accent-secondary); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-secondary);">
+                                <i class="ph ph-gift"></i> Regalo
+                            </span>
+                            {% else %}
+                            <span
+                                style="background: rgba(0, 243, 255, 0.15); color: var(--accent-primary); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-primary);">
+                                {{ canje.get_tipo_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                title="{{ canje.descripcion }}">
+                                {{ canje.descripcion }}
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span
+                                style="font-family: monospace; background: rgba(251, 191, 36, 0.1); padding: 4px 10px; border-radius: 6px; color: #fbbf24; font-weight: 700; font-size: 0.9rem;">
+                                {{ canje.costo_puntos }} pts
+                            </span>
+                        </td>
+                        <td>
+                            {% if canje.codigo_canje %}
+                            <span
+                                style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px; color: var(--accent-primary); border: 1px solid rgba(0, 243, 255, 0.3); font-size: 0.85rem;">
+                                {{ canje.codigo_canje }}
+                            </span>
+                            {% else %}
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if canje.estado_solicitud == 'PEND' %}
+                            <span class="badge"
+                                style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid #fbbf24;">
+                                <i class="ph ph-clock"></i> Pendiente
+                            </span>
+                            {% elif canje.estado_solicitud == 'APROB' %}
+                            <span class="badge"
+                                style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-success);">
+                                <i class="ph ph-check-circle"></i> Aprobado
+                            </span>
+                            {% elif canje.estado_solicitud == 'ENTR' %}
+                            <span class="badge"
+                                style="background: rgba(0, 243, 255, 0.2); color: var(--accent-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-primary);">
+                                <i class="ph ph-package"></i> Entregado
+                            </span>
+                            {% elif canje.estado_solicitud == 'RECH' %}
+                            <span class="badge"
+                                style="background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--accent-danger);">
+                                <i class="ph ph-x-circle"></i> Rechazado
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if canje.fecha_solicitud %}
+                            <div style="font-size: 0.85rem; color: var(--text-primary);">
+                                {{ canje.fecha_solicitud|date:"d/m/Y" }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ canje.fecha_solicitud|date:"H:i" }}
+                            </div>
+                            {% else %}
+                            <div style="font-size: 0.85rem; color: var(--text-primary);">
+                                {{ canje.fecha_otorgada|date:"d/m/Y" }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ canje.fecha_otorgada|date:"H:i" }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if canje.fecha_aprobacion %}
+                            <div style="font-size: 0.85rem; color: var(--text-primary);">
+                                {{ canje.fecha_aprobacion|date:"d/m/Y" }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                {{ canje.fecha_aprobacion|date:"H:i" }}
+                            </div>
+                            {% else %}
+                            <span style="color: var(--text-secondary); font-size: 0.85rem;">-</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center;">
+                            {% if canje.utilizada %}
+                            <span
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; border: 2px solid var(--accent-success);">
+                                <i class="ph ph-check" style="color: var(--accent-success); font-size: 1.1rem;"></i>
+                            </span>
+                            {% else %}
+                            <span
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(239, 68, 68, 0.2); border-radius: 50%; border: 2px solid var(--accent-danger);">
+                                <i class="ph ph-x" style="color: var(--accent-danger); font-size: 1.1rem;"></i>
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 4rem 2rem;">
+                            <div style="opacity: 0.5;">
+                                <i class="ph ph-ticket"
+                                    style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                                <p style="color: var(--text-secondary); font-size: 1.1rem; margin: 0;">No hay registros
+                                    de canjes disponibles</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if canjes.count > 0 %}
+    <div
+        style="margin-top: 2rem; padding: 1.5rem; background: rgba(0, 243, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 243, 255, 0.2);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div style="text-align: center;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Pendientes
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: #fbbf24;">
+                    {{ canjes|length|add:"0" }}
+                    {% with pendientes=canjes|length %}
+                    {% for c in canjes %}{% if c.estado_solicitud == 'PEND' %}{% if forloop.first %}{{
+                    forloop.parentloop.counter0|add:"-999" }}{% endif %}{% endif %}{% endfor %}
+                    {% endwith %}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Aprobados
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-success);">
+                    {{ canjes|length|add:"0" }}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Utilizados
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-primary);">
+                    {{ canjes|length|add:"0" }}
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <div
+                    style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+                    Rechazados
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-danger);">
+                    {{ canjes|length|add:"0" }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Custom scrollbar for table */
+    .card>div {
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent-secondary) var(--bg-body);
+    }
+
+    .card>div::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .card>div::-webkit-scrollbar-track {
+        background: var(--bg-body);
+        border-radius: 4px;
+    }
+
+    .card>div::-webkit-scrollbar-thumb {
+        background: var(--accent-secondary);
+        border-radius: 4px;
+    }
+
+    .card>div::-webkit-scrollbar-thumb:hover {
+        background: #d946ef;
+    }
+
+    /* Hover effect for table rows */
+    tbody tr:hover {
+        background: rgba(0, 243, 255, 0.05) !important;
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}

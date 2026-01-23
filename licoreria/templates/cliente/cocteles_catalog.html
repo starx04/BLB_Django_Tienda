@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}Recetario de Cócteles | Licorería Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+    .coctel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 1rem 0;
+    }
+
+    .coctel-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .coctel-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .coctel-image {
+        position: relative;
+        height: 250px;
+        overflow: hidden;
+    }
+
+    .coctel-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .coctel-card:hover .coctel-image img {
+        transform: scale(1.1);
+    }
+
+    .coctel-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 243, 255, 0.2);
+        backdrop-filter: blur(8px);
+        color: var(--accent-primary);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid rgba(0, 243, 255, 0.3);
+    }
+
+    .coctel-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .coctel-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+
+    .coctel-category {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .coctel-section-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ingredients-list {
+        font-size: 0.9rem;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .instructions-text {
+        font-size: 0.85rem;
+        color: #cbd5e1;
+        line-height: 1.6;
+        display: none;
+        /* Hidden by default, show on detail or hover perhaps? No, keep it clean */
+    }
+
+    .btn-recipe {
+        margin-top: auto;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: white;
+        padding: 12px;
+        border-radius: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-recipe:hover {
+        background: var(--accent-primary);
+        color: black;
+        border-color: var(--accent-primary);
+    }
+
+    .card-footer-actions {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .price-tag {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--accent-success);
+        text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+    }
+
+    .add-to-cart-btn {
+        background: transparent;
+        border: 1px solid var(--accent-primary);
+        color: var(--accent-primary);
+        padding: 0 1.2rem;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        text-decoration: none;
+    }
+
+    .add-to-cart-btn:hover {
+        background: var(--accent-primary);
+        color: black;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px var(--accent-primary);
+    }
+
+    .stock-info {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 5;
+    }
+
+    .stock-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 3rem; animation: slideDown 0.8s ease;">
+    <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 10px;">
+        <span style="color: var(--accent-primary);">The Cocktail</span> Experience
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px;">
+        Explora nuestra selección exclusiva de recetas traídas directamente desde TheCocktailDB. Encuentra tu próxima
+        bebida favorita.
+    </p>
+</div>
+
+<div class="search-section" style="margin-bottom: 3rem;">
+    <form method="GET" style="display: flex; gap: 15px; max-width: 500px;">
+        <div style="position: relative; flex: 1;">
+            <i class="ph ph-magnifying-glass"
+                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+            <input type="text" name="busqueda" value="{{ request.GET.busqueda }}"
+                placeholder="Buscar por nombre o ingredientes..."
+                style="width: 100%; background: var(--bg-card); border: 1px solid var(--border); padding: 14px 20px 14px 45px; border-radius: 16px; color: white;">
+        </div>
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+</div>
+
+<div class="coctel-grid">
+    {% for coctel in cocteles %}
+    <div class="coctel-card" style="animation: fadeIn 0.5s ease backwards;">
+        <div class="coctel-image">
+            <img src="{{ coctel.imagen_url }}" alt="{{ coctel.nombre }}">
+
+            <div class="stock-info">
+                <div class="stock-status-dot"
+                    style="background: {% if coctel.stock > 0 %}var(--accent-success){% else %}var(--accent-danger){% endif %};">
+                </div>
+                <span>Stock: {{ coctel.stock }}</span>
+            </div>
+
+            <span class="coctel-badge">
+                {% if coctel.es_alcoholico %}Con Alcohol{% else %}Sin Alcohol{% endif %}
+            </span>
+        </div>
+        <div class="coctel-content">
+            <div class="coctel-category">
+                <i class="ph ph-tag"></i> {{ coctel.categoria }}
+            </div>
+            <h3 class="coctel-title">{{ coctel.nombre }}</h3>
+
+            <div class="coctel-section-title">
+                <i class="ph ph-flask"></i> Ingredientes
+            </div>
+            <p class="ingredients-list">{{ coctel.ingredientes }}</p>
+
+            <div class="card-footer-actions">
+                <div class="price-tag">${{ coctel.precio|floatformat:2 }}</div>
+
+                {% if user.is_staff %}
+                <a href="{% url 'actualizar_stock' 'coctel' coctel.id %}" class="add-to-cart-btn"
+                    style="border-color: var(--text-secondary); color: var(--text-secondary); margin-right: 10px;"
+                    title="Gestionar Stock">
+                    <i class="ph ph-wrench"></i> Stock
+                </a>
+                {% endif %}
+
+                {% if coctel.stock > 0 %}
+                <a href="{% url 'agregar_carrito' 'coc' coctel.id %}" class="add-to-cart-btn" title="Agregar al carrito"
+                    onclick="addToCart(event, 'coc', {{ coctel.id }})">
+                    <i class="ph ph-shopping-cart-simple" style="font-size: 1.2rem;"></i> Agregar al carrito
+                </a>
+                {% else %}
+                <button class="add-to-cart-btn" style="border-color: #475569; color: #475569; cursor: not-allowed;"
+                    disabled>
+                    <i class="ph ph-prohibit"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div
+        style="grid-column: 1/-1; text-align: center; padding: 5rem; background: var(--bg-card); border-radius: 24px; border: 1px dashed var(--border);">
+        <i class="ph ph-mask-sad"
+            style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1.5rem; opacity: 0.3;"></i>
+        <h2 style="color: white;">No encontramos ese cóctel</h2>
+        <p style="color: var(--text-secondary);">Intenta con una búsqueda diferente o explora nuestro catálogo completo.
+        </p>
+        <a href="{% url 'cocteles_catalogo' %}" class="btn btn-secondary" style="margin-top: 1.5rem;">Ver todos los
+            cócteles</a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

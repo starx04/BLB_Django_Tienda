@@ -18,19 +18,34 @@
             </tr>
         </thead>
         <tbody>
-            {% for orden in compras %}
+            {% for orden in ordenes %}
             <tr>
-                <td><strong>#{{ orden.id }}</strong></td>
+                <td><strong>#{{ orden.codigo_orden }}</strong></td>
                 <td>{{ orden.fecha|date:"d M Y - H:i" }}</td>
-                <td style="color: var(--success); font-weight: bold;">${{ orden.total }}</td>
-                <td><span
-                        style="background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Completado</span>
+                <td style="color: var(--accent-success); font-weight: bold;">${{ orden.total|floatformat:2 }}</td>
+                <td>
+                    {% if orden.pagada %}
+                    <span
+                        style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Pagada</span>
+                    {% else %}
+                    <span
+                        style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Pendiente</span>
+                    {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'detalle_orden' orden.id %}" class="btn btn-secondary"
-                        style="padding: 6px 12px; font-size: 0.9rem;">
-                        Ver Detalle
-                    </a>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{% url 'detalle_orden' orden.id %}" class="btn btn-secondary"
+                            style="padding: 6px 12px; font-size: 0.9rem;">
+                            Ver Detalle
+                        </a>
+                        {% if orden.estado == 'SOLI' %}
+                        <a href="{% url 'cancelar_orden_solicitud' orden.id %}"
+                            onclick="return confirm('¿Estás seguro de eliminar esta solicitud de compra?')"
+                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% empty %}
